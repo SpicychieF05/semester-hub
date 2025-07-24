@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { signIn } from 'next-auth/react';
+import { useState, useEffect } from 'react';
+import { signIn, useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
 
@@ -10,9 +10,39 @@ const LoginPage = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const router = useRouter();
+  const { data: session, status } = useSession();
+
+  useEffect(() => {
+    if (status === 'authenticated' && session?.user?.id) {
+      // Attempt to create/update profile after successful login
+      const createOrUpdateProfile = async () => {
+        try {
+          const res = await fetch('/api/profile', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username: session.user.email || session.user.name || 'newuser' }), // Use email as username, or a generic one
+          });
+
+          if (!res.ok) {
+            const errorData = await res.json();
+            console.error('Failed to create/update profile:', errorData.error);
+            // Optionally, handle this error more gracefully, e.g., show a message to the user
+          }
+        } catch (err) {
+          console.error('Error creating/updating profile:', err);
+        } finally {
+          router.push('/'); // Redirect to home page after profile attempt
+        }
+      };
+      createOrUpdateProfile();
+    }
+  }, [session, status, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(''); // Clear previous errors
     const result = await signIn('credentials', {
       redirect: false,
       email,
@@ -21,9 +51,8 @@ const LoginPage = () => {
 
     if (result?.error) {
       setError('Invalid email or password');
-    } else {
-      router.push('/');
     }
+    // The useEffect hook will handle redirection after successful authentication and profile creation/update
   };
 
   return (

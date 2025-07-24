@@ -1,8 +1,13 @@
 
 import NextAuth from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
+import { createClient } from '@supabase/supabase-js';
 
-const handler = NextAuth({
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+export const authOptions = {
   providers: [
     CredentialsProvider({
       name: 'Credentials',
@@ -11,18 +16,47 @@ const handler = NextAuth({
         password: {  label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        // This is where you'd add your logic to look up the user from the database
-        // For now, we'll use a mock user
-        if (credentials?.email === "mallickchirantan@gmail.com" && credentials.password === "#Chirantan2965") {
-          return { id: "1", name: "Test User", email: "mallickchirantan@gmail.com" }
+        if (!credentials?.email || !credentials?.password) {
+          return null;
         }
-        return null
+
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: credentials.email,
+          password: credentials.password,
+        });
+
+        if (error) {
+          console.error("Supabase sign-in error:", error.message);
+          return null;
+        }
+
+        if (data.user) {
+          return { id: data.user.id, email: data.user.email };
+        }
+
+        return null;
       }
     })
   ],
   pages: {
     signIn: '/login',
   },
-})
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (token.id) {
+        session.user.id = token.id as string;
+      }
+      return session;
+    },
+  },
+};
 
-export { handler as GET, handler as POST }
+const handler = NextAuth(authOptions);
+
+export { handler as GET, handler as POST };

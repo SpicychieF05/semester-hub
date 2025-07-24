@@ -1,15 +1,67 @@
 import Header from '@/components/Header';
+import { useState, useEffect } from 'react';
 
-const notes = [
-  { id: 1, title: 'Introduction to Python', description: 'A comprehensive guide to the basics of Python programming.' },
-  { id: 2, title: 'Advanced Calculus', description: 'In-depth notes on advanced calculus topics.' },
-  { id: 3, title: 'Web Development with React', description: 'Learn how to build modern web applications with React.' },
-  { id: 4, title: 'Database Management Systems', description: 'An overview of database concepts and SQL.' },
-  { id: 5, title: 'Machine Learning Fundamentals', description: 'A beginner-friendly introduction to machine learning.' },
-  { id: 6, title: 'Data Structures and Algorithms', description: 'A deep dive into common data structures and algorithms.' },
-];
+interface Note {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  file_url: string;
+}
 
 const BrowseNotesPage = () => {
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  useEffect(() => {
+    const fetchNotes = async () => {
+      try {
+        const res = await fetch('/api/notes');
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        const data: Note[] = await res.json();
+        setNotes(data);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchNotes();
+  }, []);
+
+  const filteredNotes = notes.filter(note =>
+    note.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    note.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    note.category.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  if (loading) {
+    return (
+      <div>
+        <Header />
+        <div className="container mx-auto px-4 py-8 text-center">
+          <p>Loading notes...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div>
+        <Header />
+        <div className="container mx-auto px-4 py-8 text-center text-red-500">
+          <p>Error: {error}</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
       <Header />
@@ -21,19 +73,31 @@ const BrowseNotesPage = () => {
               type="text"
               placeholder="Search for notes..."
               className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {notes.map((note) => (
-            <div key={note.id} className="bg-white p-6 rounded-lg shadow-md">
-              <h2 className="text-xl font-bold mb-2">{note.title}</h2>
-              <p className="text-gray-600">{note.description}</p>
-              <button className="mt-4 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">
-                View Details
-              </button>
-            </div>
-          ))}
+          {filteredNotes.length === 0 ? (
+            <p className="col-span-full text-center">No notes found.</p>
+          ) : (
+            filteredNotes.map((note) => (
+              <div key={note.id} className="bg-white p-6 rounded-lg shadow-md">
+                <h2 className="text-xl font-bold mb-2">{note.title}</h2>
+                <p className="text-gray-600">{note.description}</p>
+                <p className="text-gray-500 text-sm">Category: {note.category}</p>
+                <a
+                  href={note.file_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-4 inline-block bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+                >
+                  View Note
+                </a>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>
