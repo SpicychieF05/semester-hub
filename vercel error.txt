@@ -1,108 +1,46 @@
-[01:33:55.799] Running build in Washington, D.C., USA (East) – iad1
-[01:33:55.800] Build machine configuration: 2 cores, 8 GB
-[01:33:55.812] Cloning github.com/SpicychieF05/semester-hub (Branch: master, Commit: b4467bf)
-[01:33:55.939] Previous build caches not available
-[01:33:56.662] Cloning completed: 850.000ms
-[01:33:56.948] Running "vercel build"
-[01:33:57.943] Vercel CLI 44.5.0
-[01:33:58.749] WARNING: You should not upload the `.next` directory.
-[01:33:58.765] Installing dependencies...
-[01:34:01.025] npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
-[01:34:01.428] npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
-[01:34:02.537] npm warn deprecated @humanwhocodes/object-schema@2.0.3: Use @eslint/object-schema instead
-[01:34:02.538] npm warn deprecated @humanwhocodes/config-array@0.13.0: Use @eslint/config-array instead
-[01:34:02.597] npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
-[01:34:04.119] npm warn deprecated eslint@8.57.1: This version is no longer supported. Please see https://eslint.org/version-support for other options.
-[01:34:08.975] 
-[01:34:08.975] added 405 packages in 10s
-[01:34:08.976] 
-[01:34:08.976] 149 packages are looking for funding
-[01:34:08.976]   run `npm fund` for details
-[01:34:09.020] Detected Next.js version: 14.2.30
-[01:34:09.025] Running "npm run build"
-[01:34:09.131] 
-[01:34:09.131] > semester-hub@0.1.0 build
-[01:34:09.131] > next build
-[01:34:09.132] 
-[01:34:09.657] Attention: Next.js now collects completely anonymous telemetry regarding usage.
-[01:34:09.658] This information is used to shape Next.js' roadmap and prioritize features.
-[01:34:09.658] You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
-[01:34:09.658] https://nextjs.org/telemetry
-[01:34:09.658] 
-[01:34:09.745]   ▲ Next.js 14.2.30
-[01:34:09.746] 
-[01:34:09.775]    Creating an optimized production build ...
-[01:34:16.724] Failed to compile.
-[01:34:16.725] 
-[01:34:16.725] ./src/app/browse/page.tsx
-[01:34:16.725] Error: 
-[01:34:16.726]   [31mx[0m You're importing a component that needs useState. It only works in a Client Component but none of its parents are marked with "use client", so they're Server Components by default.
-[01:34:16.726]   [31m|[0m Learn more: https://nextjs.org/docs/getting-started/react-essentials
-[01:34:16.726]   [31m|[0m 
-[01:34:16.727]   [31m|[0m 
-[01:34:16.727]    ,-[[36;1;4m/vercel/path0/src/app/browse/page.tsx[0m:1:1]
-[01:34:16.727]  [2m1[0m | import Header from '@/components/Header';
-[01:34:16.727]  [2m2[0m | import { useState, useEffect } from 'react';
-[01:34:16.727]    : [31;1m         ^^^^^^^^[0m
-[01:34:16.728]  [2m3[0m | 
-[01:34:16.728]  [2m4[0m | interface Note {
-[01:34:16.728]  [2m5[0m |   id: string;
-[01:34:16.728]    `----
-[01:34:16.728] 
-[01:34:16.729]   [31mx[0m You're importing a component that needs useEffect. It only works in a Client Component but none of its parents are marked with "use client", so they're Server Components by default.
-[01:34:16.729]   [31m|[0m Learn more: https://nextjs.org/docs/getting-started/react-essentials
-[01:34:16.729]   [31m|[0m 
-[01:34:16.729]   [31m|[0m 
-[01:34:16.729]    ,-[[36;1;4m/vercel/path0/src/app/browse/page.tsx[0m:1:1]
-[01:34:16.730]  [2m1[0m | import Header from '@/components/Header';
-[01:34:16.730]  [2m2[0m | import { useState, useEffect } from 'react';
-[01:34:16.730]    : [31;1m                   ^^^^^^^^^[0m
-[01:34:16.730]  [2m3[0m | 
-[01:34:16.730]  [2m4[0m | interface Note {
-[01:34:16.731]  [2m5[0m |   id: string;
-[01:34:16.731]    `----
-[01:34:16.731] 
-[01:34:16.731] Import trace for requested module:
-[01:34:16.731] ./src/app/browse/page.tsx
-[01:34:16.732] 
-[01:34:16.732] ./src/app/request/page.tsx
-[01:34:16.732] Error: 
-[01:34:16.732]   [31mx[0m You're importing a component that needs useState. It only works in a Client Component but none of its parents are marked with "use client", so they're Server Components by default.
-[01:34:16.732]   [31m|[0m Learn more: https://nextjs.org/docs/getting-started/react-essentials
-[01:34:16.733]   [31m|[0m 
-[01:34:16.733]   [31m|[0m 
-[01:34:16.733]    ,-[[36;1;4m/vercel/path0/src/app/request/page.tsx[0m:1:1]
-[01:34:16.733]  [2m1[0m | import Header from '@/components/Header';
-[01:34:16.733]  [2m2[0m | import { useState } from 'react';
-[01:34:16.733]    : [31;1m         ^^^^^^^^[0m
-[01:34:16.734]  [2m3[0m | import { useSession } from 'next-auth/react';
-[01:34:16.734]  [2m4[0m | 
-[01:34:16.734]  [2m5[0m | const RequestNotesPage = () => {
-[01:34:16.734]    `----
-[01:34:16.734] 
-[01:34:16.735] Import trace for requested module:
-[01:34:16.735] ./src/app/request/page.tsx
-[01:34:16.735] 
-[01:34:16.735] ./src/app/share/page.tsx
-[01:34:16.735] Error: 
-[01:34:16.735]   [31mx[0m You're importing a component that needs useState. It only works in a Client Component but none of its parents are marked with "use client", so they're Server Components by default.
-[01:34:16.736]   [31m|[0m Learn more: https://nextjs.org/docs/getting-started/react-essentials
-[01:34:16.742]   [31m|[0m 
-[01:34:16.742]   [31m|[0m 
-[01:34:16.742]    ,-[[36;1;4m/vercel/path0/src/app/share/page.tsx[0m:1:1]
-[01:34:16.742]  [2m1[0m | import Header from '@/components/Header';
-[01:34:16.742]  [2m2[0m | import { useState } from 'react';
-[01:34:16.742]    : [31;1m         ^^^^^^^^[0m
-[01:34:16.743]  [2m3[0m | import { useSession } from 'next-auth/react';
-[01:34:16.743]  [2m4[0m | 
-[01:34:16.743]  [2m5[0m | const ShareNotesPage = () => {
-[01:34:16.743]    `----
-[01:34:16.743] 
-[01:34:16.743] Import trace for requested module:
-[01:34:16.743] ./src/app/share/page.tsx
-[01:34:16.743] 
-[01:34:16.743] 
-[01:34:16.743] > Build failed because of webpack errors
-[01:34:16.767] Error: Command "npm run build" exited with 1
-[01:34:16.994] 
-[01:34:20.471] Exiting build container
+[01:50:53.474] Running build in Washington, D.C., USA (East) – iad1
+[01:50:53.474] Build machine configuration: 2 cores, 8 GB
+[01:50:53.509] Cloning github.com/SpicychieF05/semester-hub (Branch: master, Commit: bb529c3)
+[01:50:53.627] Previous build caches not available
+[01:50:54.666] Cloning completed: 1.157s
+[01:50:56.529] Running "vercel build"
+[01:50:57.468] Vercel CLI 44.5.0
+[01:50:57.744] WARNING: You should not upload the `.next` directory.
+[01:50:57.751] Installing dependencies...
+[01:51:00.350] npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+[01:51:00.705] npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+[01:51:01.735] npm warn deprecated @humanwhocodes/config-array@0.13.0: Use @eslint/config-array instead
+[01:51:01.736] npm warn deprecated @humanwhocodes/object-schema@2.0.3: Use @eslint/object-schema instead
+[01:51:01.868] npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+[01:51:03.289] npm warn deprecated eslint@8.57.1: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+[01:51:07.869] 
+[01:51:07.869] added 405 packages in 10s
+[01:51:07.869] 
+[01:51:07.870] 149 packages are looking for funding
+[01:51:07.871]   run `npm fund` for details
+[01:51:07.920] Detected Next.js version: 14.2.30
+[01:51:07.924] Running "npm run build"
+[01:51:08.027] 
+[01:51:08.027] > semester-hub@0.1.0 build
+[01:51:08.028] > next build
+[01:51:08.028] 
+[01:51:08.531] Attention: Next.js now collects completely anonymous telemetry regarding usage.
+[01:51:08.532] This information is used to shape Next.js' roadmap and prioritize features.
+[01:51:08.532] You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+[01:51:08.532] https://nextjs.org/telemetry
+[01:51:08.533] 
+[01:51:08.619]   ▲ Next.js 14.2.30
+[01:51:08.620] 
+[01:51:08.648]    Creating an optimized production build ...
+[01:51:22.114]  ✓ Compiled successfully
+[01:51:22.115]    Linting and checking validity of types ...
+[01:51:26.773] Failed to compile.
+[01:51:26.774] 
+[01:51:26.774] src/app/api/auth/[...nextauth]/route.ts
+[01:51:26.774] Type error: Route "src/app/api/auth/[...nextauth]/route.ts" does not match the required types of a Next.js Route.
+[01:51:26.774]   "authOptions" is not a valid Route export field.
+[01:51:26.774] 
+[01:51:26.791] Next.js build worker exited with code: 1 and signal: null
+[01:51:26.808] Error: Command "npm run build" exited with 1
+[01:51:27.063] 
+[01:51:30.080] Exiting build container

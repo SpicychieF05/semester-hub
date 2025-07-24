@@ -1,1 +1,12 @@
-{"/_not-found/page":"/_not-found","/api/auth/[...nextauth]/route":"/api/auth/[...nextauth]","/page":"/","/login/page":"/login","/browse/page":"/browse","/request/page":"/request","/share/page":"/share"}
+{
+  "/_not-found/page": "/_not-found",
+  "/api/auth/[...nextauth]/route": "/api/auth/[...nextauth]",
+  "/api/notes/route": "/api/notes",
+  "/api/profile/route": "/api/profile",
+  "/api/requests/route": "/api/requests",
+  "/login/page": "/login",
+  "/page": "/",
+  "/share/page": "/share",
+  "/request/page": "/request",
+  "/browse/page": "/browse"
+}
