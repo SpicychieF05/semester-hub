@@ -1,3 +1,5 @@
+"use client";
+
 import Header from '@/components/Header';
 import { useState } from 'react';
 import { useSession } from 'next-auth/react';
