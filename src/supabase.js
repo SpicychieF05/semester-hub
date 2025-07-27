@@ -4,6 +4,14 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = 'https://uevunvpcbvvduvjqcwwl.supabase.co'
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVldnVudnBjYnZ2ZHV2anFjd3dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM2NDQ0MjcsImV4cCI6MjA2OTIyMDQyN30.HvcQZb-dw0cp4PvKF5xTQguasNk-2hlgINGWDc7zjr4'
 
+// Get the site URL - use environment variable if available, otherwise fallback
+const getSiteUrl = () => {
+    return process.env.REACT_APP_SITE_URL || 
+           (process.env.NODE_ENV === 'production' 
+               ? 'https://semester-hub.vercel.app' 
+               : window.location.origin)
+}
+
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 // Auth helper functions to mimic Firebase Auth API
@@ -16,7 +24,7 @@ export const auth = {
             email,
             password,
             options: {
-                emailRedirectTo: `${window.location.origin}/`,
+                emailRedirectTo: `${getSiteUrl()}/`,
                 data: {
                     email_confirm: false
                 }
@@ -64,7 +72,7 @@ export const auth = {
             type: 'signup',
             email: email,
             options: {
-                emailRedirectTo: `${window.location.origin}/`
+                emailRedirectTo: `${getSiteUrl()}/`
             }
         })
         if (error) throw error
@@ -76,7 +84,7 @@ export const auth = {
         const { data, error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
-                redirectTo: `${window.location.origin}/`
+                redirectTo: `${getSiteUrl()}/`
             }
         })
         if (error) throw error
@@ -88,7 +96,7 @@ export const auth = {
         const { data, error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
-                redirectTo: `${window.location.origin}/`
+                redirectTo: `${getSiteUrl()}/`
             }
         })
         if (error) throw error
