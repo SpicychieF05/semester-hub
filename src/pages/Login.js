@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { auth } from '../firebase';
 import { Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
 
@@ -28,11 +27,11 @@ const Login = () => {
         setError('');
 
         try {
-            await signInWithEmailAndPassword(auth, formData.email, formData.password);
+            await auth.signInWithEmailAndPassword(formData.email, formData.password);
             navigate('/');
         } catch (error) {
             console.error('Login error:', error);
-            setError(getErrorMessage(error.code));
+            setError(getErrorMessage(error.message || error.code || error));
         } finally {
             setLoading(false);
         }
@@ -43,9 +42,9 @@ const Login = () => {
         setError('');
 
         try {
-            const provider = new GoogleAuthProvider();
-            await signInWithPopup(auth, provider);
-            navigate('/');
+            // For demo - show alert that Google login is not implemented
+            alert('Google Sign-In will be available in production. For now, please use email/password.');
+            setError('Google Sign-In not available in demo mode');
         } catch (error) {
             console.error('Google sign in error:', error);
             setError(getErrorMessage(error.code));
@@ -57,15 +56,22 @@ const Login = () => {
     const getErrorMessage = (errorCode) => {
         switch (errorCode) {
             case 'auth/user-not-found':
-                return 'No account found with this email address.';
+            case 'Invalid login credentials':
+                return 'No account found with this email address or incorrect password.';
             case 'auth/wrong-password':
                 return 'Incorrect password. Please try again.';
             case 'auth/invalid-email':
+            case 'Invalid email':
                 return 'Please enter a valid email address.';
             case 'auth/too-many-requests':
                 return 'Too many failed attempts. Please try again later.';
+            case 'Email not confirmed':
+                return 'Please check your email and confirm your account before signing in.';
+            case 'User not found':
+                return 'No account found with this email. Please register first.';
             default:
-                return 'An error occurred during sign in. Please try again.';
+                console.log('Login error details:', errorCode);
+                return `Sign in error: ${errorCode || 'Please try again or register if you don\'t have an account.'}`;
         }
     };
 

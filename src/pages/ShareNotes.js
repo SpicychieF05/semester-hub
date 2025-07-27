@@ -1,12 +1,9 @@
-import React, { useState } from 'react';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-// import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'; // Commented out - no storage needed
-import { db, auth } from '../firebase'; // Removed storage import
-import { useAuthState } from 'react-firebase-hooks/auth';
+import React, { useState, useEffect } from 'react';
+import { collection, addDoc, db, auth } from '../firebase';
 import { Upload, CheckCircle, AlertCircle } from 'lucide-react';
 
 const ShareNotes = () => {
-    const [user] = useAuthState(auth);
+    const [user, setUser] = useState(null);
     const [formData, setFormData] = useState({
         title: '',
         subject: '',
@@ -18,6 +15,19 @@ const ShareNotes = () => {
     const [file, setFile] = useState(null);
     const [uploading, setUploading] = useState(false);
     const [success, setSuccess] = useState(false);
+
+    // Auth state management
+    useEffect(() => {
+        const unsubscribe = auth.onAuthStateChanged((user) => {
+            setUser(user);
+        });
+
+        return () => {
+            if (unsubscribe && typeof unsubscribe.unsubscribe === 'function') {
+                unsubscribe.unsubscribe();
+            }
+        };
+    }, []);
     const [error, setError] = useState('');
 
     const subjects = [
@@ -69,7 +79,7 @@ const ShareNotes = () => {
                 externalLink: formData.externalLink || null,
                 author: user.displayName || user.email,
                 authorId: user.uid,
-                createdAt: serverTimestamp(),
+                createdAt: new Date().toISOString(),
                 status: 'pending', // Will be reviewed by admin
                 downloadCount: 0,
                 likes: 0,

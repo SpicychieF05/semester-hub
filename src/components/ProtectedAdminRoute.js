@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { auth, supabase } from '../firebase';
 import AdminDashboard from '../pages/AdminDashboard';
 import AdminLogin from '../pages/AdminLogin';
 
@@ -7,31 +8,63 @@ const ProtectedAdminRoute = () => {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        const checkAuth = () => {
-            const adminAuth = localStorage.getItem('demoAdminAuth') === 'true';
-            setIsAuthenticated(adminAuth);
-            setIsLoading(false);
+        const checkAuth = async () => {
+            try {
+                // First check if user is authenticated
+                const currentUser = await auth.getCurrentUser();
+
+                if (!currentUser) {
+                    setIsAuthenticated(false);
+                    setIsLoading(false);
+                    return;
+                }
+
+                // Check if user has admin role in database
+                const { data: userProfile, error } = await supabase
+                    .from('users')
+                    .select('role')
+                    .eq('id', currentUser.id)
+                    .single();
+
+                if (error) {
+                    console.error('Error checking admin role:', error);
+                    // Fallback to demo admin auth for backwards compatibility
+                    const demoAdminAuth = localStorage.getItem('demoAdminAuth') === 'true';
+                    setIsAuthenticated(demoAdminAuth);
+                } else {
+                    setIsAuthenticated(userProfile?.role === 'admin');
+                }
+            } catch (error) {
+                console.error('Auth check error:', error);
+                // Fallback to demo admin auth for backwards compatibility
+                const demoAdminAuth = localStorage.getItem('demoAdminAuth') === 'true';
+                setIsAuthenticated(demoAdminAuth);
+            } finally {
+                setIsLoading(false);
+            }
         };
 
         checkAuth();
 
-        // Listen for storage changes
+        // Listen for auth state changes
+        const unsubscribe = auth.onAuthStateChanged(() => {
+            checkAuth();
+        });
+
+        // Listen for storage changes (demo mode compatibility)
         const handleStorageChange = () => {
             checkAuth();
         };
 
         window.addEventListener('storage', handleStorageChange);
-
-        // Also listen for a custom event that we can trigger after login
-        const handleAuthChange = () => {
-            checkAuth();
-        };
-
-        window.addEventListener('adminAuthChanged', handleAuthChange);
+        window.addEventListener('adminAuthChanged', handleStorageChange);
 
         return () => {
+            if (unsubscribe && typeof unsubscribe.unsubscribe === 'function') {
+                unsubscribe.unsubscribe();
+            }
             window.removeEventListener('storage', handleStorageChange);
-            window.removeEventListener('adminAuthChanged', handleAuthChange);
+            window.removeEventListener('adminAuthChanged', handleStorageChange);
         };
     }, []);
 

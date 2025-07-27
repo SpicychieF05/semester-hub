@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { useAuthState } from 'react-firebase-hooks/auth';
-import { auth } from './firebase';
+import { auth, supabase } from './firebase';
 
 // Components
 import Navbar from './components/Navbar';
@@ -19,8 +18,48 @@ import NoteDetail from './pages/NoteDetail';
 import LoadingSpinner from './components/LoadingSpinner';
 
 function App() {
-    const [user, loading] = useAuthState(auth);
+    const [user, setUser] = useState(null);
+    const [userProfile, setUserProfile] = useState(null);
+    const [loading, setLoading] = useState(true);
     const [showLoadingScreen, setShowLoadingScreen] = useState(true);
+
+    // Auth state management
+    useEffect(() => {
+        const unsubscribe = auth.onAuthStateChanged(async (user) => {
+            setUser(user);
+
+            if (user) {
+                // Fetch user profile from users table
+                try {
+                    const { data: profile, error } = await supabase
+                        .from('users')
+                        .select('*')
+                        .eq('id', user.id)
+                        .single();
+
+                    if (error) {
+                        console.error('Error fetching user profile:', error);
+                        setUserProfile(null);
+                    } else {
+                        setUserProfile(profile);
+                    }
+                } catch (error) {
+                    console.error('Error fetching user profile:', error);
+                    setUserProfile(null);
+                }
+            } else {
+                setUserProfile(null);
+            }
+
+            setLoading(false);
+        });
+
+        return () => {
+            if (unsubscribe && typeof unsubscribe.unsubscribe === 'function') {
+                unsubscribe.unsubscribe();
+            }
+        };
+    }, []);
 
     // Clear admin auth on app initialization to ensure logout by default
     useEffect(() => {
@@ -33,9 +72,8 @@ function App() {
         window.dispatchEvent(new Event('adminAuthChanged'));
     }, []);
 
-    // Check for mock admin user
-    const mockAdminUser = localStorage.getItem('mockAdminUser');
-    const currentUser = user || (mockAdminUser ? JSON.parse(mockAdminUser) : null);
+    // Combine user auth data with profile data
+    const currentUser = user && userProfile ? { ...user, ...userProfile } : user;
 
     const handleLoadingComplete = () => {
         setShowLoadingScreen(false);

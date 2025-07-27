@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { doc, getDoc, updateDoc, increment } from 'firebase/firestore';
-import { useAuthState } from 'react-firebase-hooks/auth';
-import { db, auth } from '../firebase';
+import { doc, getDoc, updateDoc, increment, auth, db } from '../firebase';
 import {
     ArrowLeft, Download, Calendar, User, Eye, Heart,
     Share2, BookOpen, Tag, FileText, AlertCircle, Lock
@@ -10,11 +8,24 @@ import {
 
 const NoteDetail = () => {
     const { id } = useParams();
-    const [user] = useAuthState(auth);
+    const [user, setUser] = useState(null);
     const [note, setNote] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [liked, setLiked] = useState(false);
+
+    // Auth state management
+    useEffect(() => {
+        const unsubscribe = auth.onAuthStateChanged((user) => {
+            setUser(user);
+        });
+
+        return () => {
+            if (unsubscribe && typeof unsubscribe.unsubscribe === 'function') {
+                unsubscribe.unsubscribe();
+            }
+        };
+    }, []);
 
     useEffect(() => {
         const fetchNote = async () => {

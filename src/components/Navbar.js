@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
 import { Menu, X, User, LogOut } from 'lucide-react';
 
@@ -11,7 +10,7 @@ const Navbar = ({ user }) => {
 
     const handleLogout = async () => {
         try {
-            await signOut(auth);
+            await auth.signOut();
             navigate('/');
         } catch (error) {
             console.error('Error logging out:', error);

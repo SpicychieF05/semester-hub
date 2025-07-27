@@ -159,7 +159,7 @@ const Footer = () => {
                             <span className="font-semibold text-white">Chirantan Mallick</span>
                         </div>
                         <div className="text-secondary-400 text-sm">
-                            Built with React 18, Firebase v10, Tailwind CSS, Lucide Icons & React Router
+                            Built with React 18, Supabase, Tailwind CSS, Lucide Icons & React Router
                         </div>
                     </div>
                 </div>

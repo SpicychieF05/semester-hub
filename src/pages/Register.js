@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { createUserWithEmailAndPassword, updateProfile, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
-import { auth } from '../firebase';
+import { auth, supabase } from '../firebase';
 import { Mail, Lock, User, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
 
 const Register = () => {
@@ -50,20 +49,39 @@ const Register = () => {
         setError('');
 
         try {
-            const userCredential = await createUserWithEmailAndPassword(
-                auth,
+            // Create user account in Supabase Auth
+            const { user } = await auth.createUserWithEmailAndPassword(
                 formData.email,
                 formData.password
             );
 
-            await updateProfile(userCredential.user, {
-                displayName: formData.name
-            });
+            // Save user profile data to users table
+            if (user) {
+                const { error: profileError } = await supabase
+                    .from('users')
+                    .insert([
+                        {
+                            id: user.id,
+                            email: user.email,
+                            name: formData.name,
+                            role: 'user', // Default role for new users
+                            created_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString()
+                        }
+                    ]);
 
+                if (profileError) {
+                    console.error('Profile creation error:', profileError);
+                    // Don't fail the registration if profile creation fails
+                    // User can still use the app, just might not have full profile
+                }
+            }
+
+            // Navigate to home page after successful registration
             navigate('/');
         } catch (error) {
             console.error('Registration error:', error);
-            setError(getErrorMessage(error.code));
+            setError(getErrorMessage(error.code || error.message));
         } finally {
             setLoading(false);
         }
@@ -74,9 +92,9 @@ const Register = () => {
         setError('');
 
         try {
-            const provider = new GoogleAuthProvider();
-            await signInWithPopup(auth, provider);
-            navigate('/');
+            // For demo - show alert that Google signup is not implemented
+            alert('Google Sign-Up will be available in production. For now, please use email/password.');
+            setError('Google Sign-Up not available in demo mode');
         } catch (error) {
             console.error('Google sign up error:', error);
             setError(getErrorMessage(error.code));
