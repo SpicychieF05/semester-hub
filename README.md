@@ -331,7 +331,6 @@ REACT_APP_FIREBASE_APP_ID=your_app_id
 <table>
 <tr>
 <td align="center">
-  <img src="https://github.com/spicychief05.png" width="100" style="border-radius: 50%"/><br>
   <strong>Chirantan Mallick</strong><br>
   <em>BCA 3rd Year Student</em><br>
   <em>Seacom Skills University</em>
