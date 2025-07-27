@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, AlertCircle, Shield } from 'lucide-react';
+import { supabase } from '../supabase';
 
 const AdminLogin = () => {
     const [formData, setFormData] = useState({
@@ -11,6 +12,68 @@ const AdminLogin = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const navigate = useNavigate();
+
+    // Handle Google OAuth callback and verify admin status
+    useEffect(() => {
+        const handleAuthCallback = async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const provider = urlParams.get('provider');
+
+            if (provider === 'google') {
+                try {
+                    setLoading(true);
+
+                    // Get the current user after OAuth redirect
+                    const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+                    if (userError || !user) {
+                        setError('Authentication failed. Please try again.');
+                        return;
+                    }
+
+                    // Check if user exists in database and is an admin
+                    const { data: userProfile, error: profileError } = await supabase
+                        .from('users')
+                        .select('*')
+                        .eq('id', user.id)
+                        .single();
+
+                    if (profileError) {
+                        console.error('Error fetching user profile:', profileError);
+                        setError('User profile not found. Please contact administrator.');
+                        return;
+                    }
+
+                    // Verify admin role
+                    if (userProfile.role !== 'admin') {
+                        setError('Access denied. This account does not have admin privileges.');
+                        // Sign out the non-admin user
+                        await supabase.auth.signOut();
+                        return;
+                    }
+
+                    // Success - user is an admin
+                    localStorage.setItem('demoAdminAuth', 'true');
+                    localStorage.setItem('demoAdminEmail', user.email);
+                    localStorage.setItem('demoAuthProvider', 'google');
+
+                    // Trigger custom event to notify components about auth change
+                    window.dispatchEvent(new Event('adminAuthChanged'));
+
+                    // Navigate to admin dashboard
+                    navigate('/admin');
+
+                } catch (error) {
+                    console.error('Auth callback error:', error);
+                    setError('Authentication failed. Please try again.');
+                } finally {
+                    setLoading(false);
+                }
+            }
+        };
+
+        handleAuthCallback();
+    }, [navigate]);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -25,22 +88,26 @@ const AdminLogin = () => {
         setError('');
 
         try {
-            // Demo mode - simulate Google sign-in with admin credentials
-            console.log('Demo Google sign-in for admin access');
+            // Check if Google OAuth is configured
+            const { error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: `${window.location.origin}/admin-login?provider=google`
+                }
+            });
 
-            // Store demo auth state in localStorage
-            localStorage.setItem('demoAdminAuth', 'true');
-            localStorage.setItem('demoAdminEmail', 'codiverse.dev@gmail.com');
-            localStorage.setItem('demoAuthProvider', 'google');
-
-            // Trigger custom event to notify components about auth change
-            window.dispatchEvent(new Event('adminAuthChanged'));
-
-            // Navigate to admin page
-            navigate('/admin');
+            if (error) {
+                console.error('Google OAuth error:', error);
+                if (error.message.includes('provider') || error.message.includes('not enabled')) {
+                    setError('Google authentication is not configured. Please contact the administrator or use email/password login.');
+                } else {
+                    setError('Google sign-in failed. Please try again or use email/password login.');
+                }
+            }
+            // Note: The actual authentication and admin verification happens after redirect
         } catch (error) {
             console.error('Google sign-in error:', error);
-            setError('Google sign-in failed. Please try again.');
+            setError('Google sign-in failed. Please try again or use email/password login.');
         } finally {
             setLoading(false);
         }
@@ -48,38 +115,79 @@ const AdminLogin = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log('Form submitted with data:', formData);
-        console.log('Expected email:', 'codiverse.dev@gmail.com');
-        console.log('Expected password:', '#Codiverse2965');
-        console.log('Actual email:', formData.email);
-        console.log('Actual password:', formData.password);
-        console.log('Email match:', formData.email === 'codiverse.dev@gmail.com');
-        console.log('Password match:', formData.password === '#Codiverse2965');
-
         setLoading(true);
         setError('');
 
         try {
-            // Demo authentication - check hardcoded credentials
-            const demoAdminEmail = 'codiverse.dev@gmail.com';
-            const demoAdminPassword = '#Codiverse2965';
+            // First try real Supabase authentication
+            const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+                email: formData.email,
+                password: formData.password,
+            });
 
-            if (formData.email === demoAdminEmail && formData.password === demoAdminPassword) {
-                console.log('Demo admin authentication successful');
-                // Store demo auth state in localStorage
-                localStorage.setItem('demoAdminAuth', 'true');
-                localStorage.setItem('demoAdminEmail', formData.email);
-                console.log('Navigating to /admin');
+            if (authError) {
+                // If Supabase auth fails, fall back to demo mode for specific admin credentials
+                const demoAdminEmail = 'codiverse.dev@gmail.com';
+                const demoAdminPassword = '#Codiverse2965';
 
-                // Trigger custom event to notify components about auth change
-                window.dispatchEvent(new Event('adminAuthChanged'));
+                if (formData.email === demoAdminEmail && formData.password === demoAdminPassword) {
+                    console.log('Demo admin authentication successful');
+                    // Store demo auth state in localStorage
+                    localStorage.setItem('demoAdminAuth', 'true');
+                    localStorage.setItem('demoAdminEmail', formData.email);
+                    localStorage.setItem('demoAuthProvider', 'email');
 
-                // Navigate to admin page
-                navigate('/admin');
-            } else {
-                console.log('Authentication failed - credentials do not match');
-                setError('Authentication failed. Please check your credentials.');
+                    // Trigger custom event to notify components about auth change
+                    window.dispatchEvent(new Event('adminAuthChanged'));
+
+                    // Navigate to admin page
+                    setTimeout(() => {
+                        navigate('/admin');
+                    }, 100);
+                    return;
+                } else {
+                    setError('Invalid email or password. Please check your credentials.');
+                    return;
+                }
             }
+
+            // Real authentication successful - now verify admin role
+            const user = authData.user;
+
+            // Check if user exists in database and is an admin
+            const { data: userProfile, error: profileError } = await supabase
+                .from('users')
+                .select('*')
+                .eq('id', user.id)
+                .single();
+
+            if (profileError) {
+                console.error('Error fetching user profile:', profileError);
+                setError('User profile not found. Please contact administrator.');
+                // Sign out the user since they can't access admin
+                await supabase.auth.signOut();
+                return;
+            }
+
+            // Verify admin role
+            if (userProfile.role !== 'admin') {
+                setError('Access denied. This account does not have admin privileges.');
+                // Sign out the non-admin user
+                await supabase.auth.signOut();
+                return;
+            }
+
+            // Success - user is authenticated and is an admin
+            localStorage.setItem('demoAdminAuth', 'true');
+            localStorage.setItem('demoAdminEmail', user.email);
+            localStorage.setItem('demoAuthProvider', 'email');
+
+            // Trigger custom event to notify components about auth change
+            window.dispatchEvent(new Event('adminAuthChanged'));
+
+            // Navigate to admin dashboard
+            navigate('/admin');
+
         } catch (error) {
             console.error('Admin login error:', error);
             setError('Authentication failed. Please check your credentials.');

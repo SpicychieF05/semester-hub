@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { auth, supabase } from './firebase';
+import { auth, supabase } from './supabase';
 
 // Components
 import Navbar from './components/Navbar';
@@ -29,6 +29,13 @@ function App() {
             setUser(user);
 
             if (user) {
+                // For OAuth users (like Google), create profile if it doesn't exist
+                try {
+                    await auth.createOrUpdateProfile(user);
+                } catch (error) {
+                    console.error('Error creating/updating user profile:', error);
+                }
+
                 // Fetch user profile from users table
                 try {
                     const { data: profile, error } = await supabase

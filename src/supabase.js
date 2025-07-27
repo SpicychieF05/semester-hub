@@ -16,7 +16,10 @@ export const auth = {
             email,
             password,
             options: {
-                emailRedirectTo: `${window.location.origin}/`
+                emailRedirectTo: `${window.location.origin}/`,
+                data: {
+                    email_confirm: false
+                }
             }
         })
         if (error) throw error
@@ -53,6 +56,101 @@ export const auth = {
             }
         )
         return subscription
+    },
+
+    // Resend confirmation email
+    resendConfirmation: async (email) => {
+        const { error } = await supabase.auth.resend({
+            type: 'signup',
+            email: email,
+            options: {
+                emailRedirectTo: `${window.location.origin}/`
+            }
+        })
+        if (error) throw error
+        return { success: true }
+    },
+
+    // Sign in with Google
+    signInWithGoogle: async () => {
+        const { data, error } = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+                redirectTo: `${window.location.origin}/`
+            }
+        })
+        if (error) throw error
+        return data
+    },
+
+    // Sign up with Google (same as sign in for OAuth)
+    signUpWithGoogle: async () => {
+        const { data, error } = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+                redirectTo: `${window.location.origin}/`
+            }
+        })
+        if (error) throw error
+        return data
+    },
+
+    // Create or update user profile (for OAuth users)
+    createOrUpdateProfile: async (user) => {
+        try {
+            // Check if user profile already exists
+            const { data: existingUser, error: fetchError } = await supabase
+                .from('users')
+                .select('*')
+                .eq('id', user.id)
+                .single();
+
+            if (fetchError && fetchError.code !== 'PGRST116') {
+                // PGRST116 is "Row not found" error, which is expected for new users
+                throw fetchError;
+            }
+
+            if (!existingUser) {
+                // Create new user profile
+                const { error: insertError } = await supabase
+                    .from('users')
+                    .insert([
+                        {
+                            id: user.id,
+                            email: user.email,
+                            name: user.user_metadata?.full_name || user.user_metadata?.name || user.email.split('@')[0],
+                            role: 'user',
+                            auth_provider: user.app_metadata?.provider || 'email',
+                            avatar_url: user.user_metadata?.avatar_url || null,
+                            created_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString()
+                        }
+                    ]);
+
+                if (insertError) {
+                    throw insertError;
+                }
+            } else {
+                // Update existing user profile with latest info
+                const { error: updateError } = await supabase
+                    .from('users')
+                    .update({
+                        name: user.user_metadata?.full_name || user.user_metadata?.name || existingUser.name,
+                        avatar_url: user.user_metadata?.avatar_url || existingUser.avatar_url,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', user.id);
+
+                if (updateError) {
+                    throw updateError;
+                }
+            }
+
+            return true;
+        } catch (error) {
+            console.error('Error creating/updating user profile:', error);
+            throw error;
+        }
     }
 }
 

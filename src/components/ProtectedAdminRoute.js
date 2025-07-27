@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { auth, supabase } from '../firebase';
+import { auth, supabase } from '../supabase';
 import AdminDashboard from '../pages/AdminDashboard';
 import AdminLogin from '../pages/AdminLogin';
 
@@ -9,8 +9,20 @@ const ProtectedAdminRoute = () => {
 
     useEffect(() => {
         const checkAuth = async () => {
+            console.log('ProtectedAdminRoute: Checking authentication...');
             try {
-                // First check if user is authenticated
+                // First check demo admin auth for backwards compatibility
+                const demoAdminAuth = localStorage.getItem('demoAdminAuth') === 'true';
+                console.log('ProtectedAdminRoute: Demo admin auth status:', demoAdminAuth);
+
+                if (demoAdminAuth) {
+                    console.log('Demo admin authenticated in ProtectedAdminRoute');
+                    setIsAuthenticated(true);
+                    setIsLoading(false);
+                    return;
+                }
+
+                // Check if user is authenticated through Supabase
                 const currentUser = await auth.getCurrentUser();
 
                 if (!currentUser) {
@@ -28,17 +40,13 @@ const ProtectedAdminRoute = () => {
 
                 if (error) {
                     console.error('Error checking admin role:', error);
-                    // Fallback to demo admin auth for backwards compatibility
-                    const demoAdminAuth = localStorage.getItem('demoAdminAuth') === 'true';
-                    setIsAuthenticated(demoAdminAuth);
+                    setIsAuthenticated(false);
                 } else {
                     setIsAuthenticated(userProfile?.role === 'admin');
                 }
             } catch (error) {
                 console.error('Auth check error:', error);
-                // Fallback to demo admin auth for backwards compatibility
-                const demoAdminAuth = localStorage.getItem('demoAdminAuth') === 'true';
-                setIsAuthenticated(demoAdminAuth);
+                setIsAuthenticated(false);
             } finally {
                 setIsLoading(false);
             }

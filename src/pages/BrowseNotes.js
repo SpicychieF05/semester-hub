@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import { supabase } from '../supabase';
 import { Search, BookOpen, Download, Eye, Calendar, User } from 'lucide-react';
 
 const BrowseNotes = () => {
@@ -20,126 +21,163 @@ const BrowseNotes = () => {
         'Semester 5', 'Semester 6', 'Semester 7', 'Semester 8'
     ];
 
-    useEffect(() => {
-        // Demo data for portfolio/showcase
-        const demoNotes = [
-            {
-                id: '1',
-                title: 'Data Structures and Algorithms',
-                subject: 'Computer Science',
-                semester: 'Semester 3',
-                description: 'Comprehensive notes covering arrays, linked lists, stacks, queues, trees, and graph algorithms with implementation examples.',
-                author: 'Arjun Sharma',
-                createdAt: { toDate: () => new Date('2024-01-15') },
-                downloadCount: 245,
-                views: 1250,
-                tags: ['DSA', 'Programming', 'Algorithms'],
-                status: 'approved',
-                externalLink: 'https://example.com/dsa-notes'
-            },
-            {
-                id: '2',
-                title: 'Calculus Integration Techniques',
-                subject: 'Mathematics',
-                semester: 'Semester 2',
-                description: 'Detailed notes on integration by parts, substitution, partial fractions, and trigonometric integrals with solved examples.',
-                author: 'Priya Patel',
-                createdAt: { toDate: () => new Date('2024-01-10') },
-                downloadCount: 189,
-                views: 890,
-                tags: ['Calculus', 'Integration', 'Mathematics'],
-                status: 'approved',
-                externalLink: 'https://example.com/calculus-notes'
-            },
-            {
-                id: '3',
-                title: 'Thermodynamics Laws and Applications',
-                subject: 'Physics',
-                semester: 'Semester 4',
-                description: 'Complete coverage of the four laws of thermodynamics with real-world applications and problem-solving strategies.',
-                author: 'Rohan Gupta',
-                createdAt: { toDate: () => new Date('2024-01-08') },
-                downloadCount: 156,
-                views: 720,
-                tags: ['Thermodynamics', 'Physics', 'Energy'],
-                status: 'approved',
-                externalLink: 'https://example.com/thermo-notes'
-            },
-            {
-                id: '4',
-                title: 'Database Management Systems',
-                subject: 'Computer Science',
-                semester: 'Semester 5',
-                description: 'SQL queries, normalization, indexing, transactions, and database design principles with practical examples.',
-                author: 'Ananya Singh',
-                createdAt: { toDate: () => new Date('2024-01-05') },
-                downloadCount: 298,
-                views: 1450,
-                tags: ['DBMS', 'SQL', 'Database'],
-                status: 'approved',
-                externalLink: 'https://example.com/dbms-notes'
-            },
-            {
-                id: '5',
-                title: 'Organic Chemistry Reactions',
-                subject: 'Chemistry',
-                semester: 'Semester 3',
-                description: 'Mechanism studies of addition, substitution, and elimination reactions with stereochemistry considerations.',
-                author: 'Vikram Mehta',
-                createdAt: { toDate: () => new Date('2024-01-03') },
-                downloadCount: 178,
-                views: 965,
-                tags: ['Organic Chemistry', 'Reactions', 'Mechanisms'],
-                status: 'approved',
-                externalLink: 'https://example.com/organic-chem-notes'
-            },
-            {
-                id: '6',
-                title: 'Machine Learning Fundamentals',
-                subject: 'Computer Science',
-                semester: 'Semester 6',
-                description: 'Introduction to supervised and unsupervised learning, neural networks, and popular ML algorithms.',
-                author: 'Kavya Reddy',
-                createdAt: { toDate: () => new Date('2024-01-01') },
-                downloadCount: 334,
-                views: 1678,
-                tags: ['Machine Learning', 'AI', 'Neural Networks'],
-                status: 'approved',
-                externalLink: 'https://example.com/ml-notes'
-            },
-            {
-                id: '7',
-                title: 'Linear Algebra Matrix Operations',
-                subject: 'Mathematics',
-                semester: 'Semester 2',
-                description: 'Vector spaces, eigenvalues, eigenvectors, and matrix transformations with geometric interpretations.',
-                author: 'Rajesh Kumar',
-                createdAt: { toDate: () => new Date('2023-12-28') },
-                downloadCount: 167,
-                views: 823,
-                tags: ['Linear Algebra', 'Matrices', 'Vectors'],
-                status: 'approved',
-                externalLink: 'https://example.com/linear-algebra-notes'
-            },
-            {
-                id: '8',
-                title: 'Operating Systems Concepts',
-                subject: 'Computer Science',
-                semester: 'Semester 4',
-                description: 'Process management, memory management, file systems, and synchronization with practical examples.',
-                author: 'Deepika Sharma',
-                createdAt: { toDate: () => new Date('2023-12-25') },
-                downloadCount: 223,
-                views: 1134,
-                tags: ['Operating Systems', 'Processes', 'Memory Management'],
-                status: 'approved',
-                externalLink: 'https://example.com/os-notes'
-            }
-        ];
+    const fetchNotes = useCallback(async () => {
+        try {
+            setLoading(true);
 
-        setNotes(demoNotes);
-        setLoading(false);
+            // Fetch approved notes from Supabase
+            const { data: realNotes, error } = await supabase
+                .from('notes')
+                .select('*')
+                .eq('status', 'approved')
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                console.error('Error fetching notes:', error);
+                // Fallback to demo data
+                setNotes(getDemoNotes());
+            } else if (realNotes && realNotes.length > 0) {
+                // Use real data from Supabase
+                const formattedNotes = realNotes.map(note => ({
+                    ...note,
+                    author: note.uploader_name,
+                    createdAt: { toDate: () => new Date(note.created_at) },
+                    downloadCount: note.download_count || 0,
+                    views: Math.floor(Math.random() * 1000) + 100, // Random views for demo
+                    tags: ['Academic', note.subject],
+                    externalLink: note.file_url
+                }));
+                setNotes(formattedNotes);
+            } else {
+                // No real data, use demo data
+                setNotes(getDemoNotes());
+            }
+        } catch (error) {
+            console.error('Error loading notes:', error);
+            setNotes(getDemoNotes());
+        } finally {
+            setLoading(false);
+        }
     }, []);
+
+    useEffect(() => {
+        fetchNotes();
+    }, [fetchNotes]);
+
+    const getDemoNotes = () => [
+        {
+            id: '1',
+            title: 'Data Structures and Algorithms',
+            subject: 'Computer Science',
+            semester: 'Semester 3',
+            description: 'Comprehensive notes covering arrays, linked lists, stacks, queues, trees, and graph algorithms with implementation examples.',
+            author: 'Arjun Sharma',
+            createdAt: { toDate: () => new Date('2024-01-15') },
+            downloadCount: 245,
+            views: 1250,
+            tags: ['DSA', 'Programming', 'Algorithms'],
+            status: 'approved',
+            externalLink: 'https://example.com/dsa-notes'
+        },
+        {
+            id: '2',
+            title: 'Calculus Integration Techniques',
+            subject: 'Mathematics',
+            semester: 'Semester 2',
+            description: 'Detailed notes on integration by parts, substitution, partial fractions, and trigonometric integrals with solved examples.',
+            author: 'Priya Patel',
+            createdAt: { toDate: () => new Date('2024-01-10') },
+            downloadCount: 189,
+            views: 890,
+            tags: ['Calculus', 'Integration', 'Mathematics'],
+            status: 'approved',
+            externalLink: 'https://example.com/calculus-notes'
+        },
+        {
+            id: '3',
+            title: 'Thermodynamics Laws and Applications',
+            subject: 'Physics',
+            semester: 'Semester 4',
+            description: 'Complete coverage of the four laws of thermodynamics with real-world applications and problem-solving strategies.',
+            author: 'Rohan Gupta',
+            createdAt: { toDate: () => new Date('2024-01-08') },
+            downloadCount: 156,
+            views: 720,
+            tags: ['Thermodynamics', 'Physics', 'Energy'],
+            status: 'approved',
+            externalLink: 'https://example.com/thermo-notes'
+        },
+        {
+            id: '4',
+            title: 'Database Management Systems',
+            subject: 'Computer Science',
+            semester: 'Semester 5',
+            description: 'SQL queries, normalization, indexing, transactions, and database design principles with practical examples.',
+            author: 'Ananya Singh',
+            createdAt: { toDate: () => new Date('2024-01-05') },
+            downloadCount: 298,
+            views: 1450,
+            tags: ['DBMS', 'SQL', 'Database'],
+            status: 'approved',
+            externalLink: 'https://example.com/dbms-notes'
+        },
+        {
+            id: '5',
+            title: 'Organic Chemistry Reactions',
+            subject: 'Chemistry',
+            semester: 'Semester 3',
+            description: 'Mechanism studies of addition, substitution, and elimination reactions with stereochemistry considerations.',
+            author: 'Vikram Mehta',
+            createdAt: { toDate: () => new Date('2024-01-03') },
+            downloadCount: 178,
+            views: 965,
+            tags: ['Organic Chemistry', 'Reactions', 'Mechanisms'],
+            status: 'approved',
+            externalLink: 'https://example.com/organic-chem-notes'
+        },
+        {
+            id: '6',
+            title: 'Machine Learning Fundamentals',
+            subject: 'Computer Science',
+            semester: 'Semester 6',
+            description: 'Introduction to supervised and unsupervised learning, neural networks, and popular ML algorithms.',
+            author: 'Kavya Reddy',
+            createdAt: { toDate: () => new Date('2024-01-01') },
+            downloadCount: 334,
+            views: 1678,
+            tags: ['Machine Learning', 'AI', 'Neural Networks'],
+            status: 'approved',
+            externalLink: 'https://example.com/ml-notes'
+        },
+        {
+            id: '7',
+            title: 'Linear Algebra Matrix Operations',
+            subject: 'Mathematics',
+            semester: 'Semester 2',
+            description: 'Vector spaces, eigenvalues, eigenvectors, and matrix transformations with geometric interpretations.',
+            author: 'Rajesh Kumar',
+            createdAt: { toDate: () => new Date('2023-12-28') },
+            downloadCount: 167,
+            views: 823,
+            tags: ['Linear Algebra', 'Matrices', 'Vectors'],
+            status: 'approved',
+            externalLink: 'https://example.com/linear-algebra-notes'
+        },
+        {
+            id: '8',
+            title: 'Operating Systems Concepts',
+            subject: 'Computer Science',
+            semester: 'Semester 4',
+            description: 'Process management, memory management, file systems, and synchronization with practical examples.',
+            author: 'Deepika Sharma',
+            createdAt: { toDate: () => new Date('2023-12-25') },
+            downloadCount: 223,
+            views: 1134,
+            tags: ['Operating Systems', 'Processes', 'Memory Management'],
+            status: 'approved',
+            externalLink: 'https://example.com/os-notes'
+        }
+    ];
 
     useEffect(() => {
         const filterNotes = () => {

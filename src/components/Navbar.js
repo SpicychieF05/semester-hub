@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { auth } from '../firebase';
+import { auth } from '../supabase';
 import { Menu, X, User, LogOut } from 'lucide-react';
 
 const Navbar = ({ user }) => {

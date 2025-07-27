@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { auth } from '../firebase';
-import { Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { auth } from '../supabase';
+import { Mail, Lock, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
 
 const Login = () => {
     const [formData, setFormData] = useState({
@@ -11,6 +11,8 @@ const Login = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [resendingEmail, setResendingEmail] = useState(false);
+    const [emailResent, setEmailResent] = useState(false);
     const navigate = useNavigate();
 
     const handleInputChange = (e) => {
@@ -42,14 +44,40 @@ const Login = () => {
         setError('');
 
         try {
-            // For demo - show alert that Google login is not implemented
-            alert('Google Sign-In will be available in production. For now, please use email/password.');
-            setError('Google Sign-In not available in demo mode');
+            await auth.signInWithGoogle();
+            // OAuth redirect will handle navigation
         } catch (error) {
             console.error('Google sign in error:', error);
-            setError(getErrorMessage(error.code));
+
+            // Check if it's a provider not enabled error
+            if (error.message?.includes('provider is not enabled') || error.error_code === 'validation_failed') {
+                setError('Google Sign-In is not configured yet. Please use email/password or contact support.');
+            } else {
+                setError('Failed to sign in with Google. Please try again.');
+            }
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleResendConfirmation = async () => {
+        if (!formData.email) {
+            setError('Please enter your email address first.');
+            return;
+        }
+
+        setResendingEmail(true);
+        setError('');
+
+        try {
+            await auth.resendConfirmation(formData.email);
+            setEmailResent(true);
+            setError(''); // Clear any previous errors
+        } catch (error) {
+            console.error('Resend confirmation error:', error);
+            setError('Failed to resend confirmation email. Please try again.');
+        } finally {
+            setResendingEmail(false);
         }
     };
 
@@ -66,11 +94,16 @@ const Login = () => {
             case 'auth/too-many-requests':
                 return 'Too many failed attempts. Please try again later.';
             case 'Email not confirmed':
+            case 'Email not confirmed.':
                 return 'Please check your email and confirm your account before signing in.';
             case 'User not found':
                 return 'No account found with this email. Please register first.';
             default:
                 console.log('Login error details:', errorCode);
+                // Check if it's an email confirmation error
+                if (errorCode && errorCode.toLowerCase().includes('confirm')) {
+                    return 'Please check your email and confirm your account before signing in.';
+                }
                 return `Sign in error: ${errorCode || 'Please try again or register if you don\'t have an account.'}`;
         }
     };
@@ -96,10 +129,31 @@ const Login = () => {
 
             <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
                 <div className="bg-white py-8 px-4 shadow-sm rounded-lg sm:px-10">
+                    {emailResent && (
+                        <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4 flex items-center space-x-2">
+                            <CheckCircle size={20} className="text-green-500" />
+                            <span className="text-green-700 text-sm">
+                                Confirmation email sent! Please check your inbox and click the confirmation link.
+                            </span>
+                        </div>
+                    )}
+
                     {error && (
-                        <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 flex items-center space-x-2">
-                            <AlertCircle size={20} className="text-red-500" />
-                            <span className="text-red-700 text-sm">{error}</span>
+                        <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+                            <div className="flex items-center space-x-2 mb-2">
+                                <AlertCircle size={20} className="text-red-500" />
+                                <span className="text-red-700 text-sm">{error}</span>
+                            </div>
+                            {error.toLowerCase().includes('confirm') && formData.email && (
+                                <button
+                                    type="button"
+                                    onClick={handleResendConfirmation}
+                                    disabled={resendingEmail}
+                                    className="mt-2 text-sm text-primary-600 hover:text-primary-700 font-medium disabled:opacity-50"
+                                >
+                                    {resendingEmail ? 'Sending...' : 'Resend confirmation email'}
+                                </button>
+                            )}
                         </div>
                     )}
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, addDoc, db, auth } from '../firebase';
+import { supabase } from '../supabase';
 import { Upload, CheckCircle, AlertCircle } from 'lucide-react';
 
 const ShareNotes = () => {
@@ -18,14 +18,21 @@ const ShareNotes = () => {
 
     // Auth state management
     useEffect(() => {
-        const unsubscribe = auth.onAuthStateChanged((user) => {
+        // Get initial auth state
+        const getInitialAuthState = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
             setUser(user);
+        };
+
+        getInitialAuthState();
+
+        // Listen for auth changes
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+            setUser(session?.user || null);
         });
 
         return () => {
-            if (unsubscribe && typeof unsubscribe.unsubscribe === 'function') {
-                unsubscribe.unsubscribe();
-            }
+            subscription?.unsubscribe();
         };
     }, []);
     const [error, setError] = useState('');
@@ -40,12 +47,74 @@ const ShareNotes = () => {
         'Semester 5', 'Semester 6', 'Semester 7', 'Semester 8'
     ];
 
+    const handleFileChange = (e) => {
+        const selectedFile = e.target.files[0];
+        if (selectedFile) {
+            // Check file size (limit to 10MB)
+            if (selectedFile.size > 10 * 1024 * 1024) {
+                setError('File size must be less than 10MB');
+                return;
+            }
+
+            // Check file type (allow PDFs, images, docs)
+            const allowedTypes = [
+                'application/pdf',
+                'image/jpeg',
+                'image/png',
+                'image/gif',
+                'application/msword',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'text/plain'
+            ];
+
+            if (!allowedTypes.includes(selectedFile.type)) {
+                setError('Please select a valid file type (PDF, DOC, DOCX, TXT, or image)');
+                return;
+            }
+
+            setFile(selectedFile);
+            setError('');
+        }
+    };
+
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({
             ...prev,
             [name]: value
         }));
+    };
+
+    const uploadFileToSupabase = async (file, noteId) => {
+        try {
+            const fileExtension = file.name.split('.').pop();
+            const fileName = `${noteId}-${Date.now()}.${fileExtension}`;
+            const filePath = `notes/${fileName}`;
+
+            // Upload file to Supabase Storage
+            const { error } = await supabase.storage
+                .from('notes-files')
+                .upload(filePath, file);
+
+            if (error) {
+                throw error;
+            }
+
+            // Get public URL
+            const { data: { publicUrl } } = supabase.storage
+                .from('notes-files')
+                .getPublicUrl(filePath);
+
+            return {
+                url: publicUrl,
+                path: filePath,
+                fileName: file.name,
+                fileSize: file.size
+            };
+        } catch (error) {
+            console.error('File upload error:', error);
+            throw new Error('Failed to upload file. Please try again.');
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -62,31 +131,117 @@ const ShareNotes = () => {
             return;
         }
 
+        // Validate that either file or external link is provided
+        if (!file && !formData.externalLink.trim()) {
+            setError('Please either upload a file or provide an external link to your notes');
+            return;
+        }
+
         setUploading(true);
         setError('');
 
         try {
-            // Create note document in Firestore (text-based, no file upload)
-            const noteData = {
-                ...formData,
-                tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
-                // For text-based notes, we store the content directly
-                content: formData.description,
-                noteType: file ? 'file' : 'text', // Track if it's text or file-based
-                fileName: file ? file.name : null,
-                fileSize: file ? file.size : null,
-                // Instead of file upload, we can store external links or text content
-                externalLink: formData.externalLink || null,
-                author: user.displayName || user.email,
-                authorId: user.uid,
-                createdAt: new Date().toISOString(),
-                status: 'pending', // Will be reviewed by admin
-                downloadCount: 0,
-                likes: 0,
-                views: 0
-            };
+            // Get current user from Supabase
+            const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser();
 
-            await addDoc(collection(db, 'notes'), noteData);
+            if (userError || !currentUser) {
+                setError('You must be logged in to share notes');
+                setUploading(false);
+                return;
+            }
+
+            // Get user profile from Supabase
+            const { data: userProfile } = await supabase
+                .from('users')
+                .select('name, email')
+                .eq('id', currentUser.id)
+                .single();
+
+            let fileUrl = formData.externalLink || '#';
+            let fileName = 'External Link';
+            let fileSize = null;
+
+            // Upload file if provided
+            if (file) {
+                try {
+                    // First create the note record to get an ID
+                    const tempNoteData = {
+                        title: formData.title,
+                        subject: formData.subject,
+                        semester: formData.semester,
+                        description: formData.description,
+                        file_url: '#', // Temporary placeholder
+                        file_name: file.name,
+                        file_size: file.size,
+                        uploader_id: currentUser.id,
+                        uploader_name: userProfile?.name || currentUser.email,
+                        uploader_email: userProfile?.email || currentUser.email,
+                        status: 'pending',
+                        download_count: 0,
+                        created_at: new Date().toISOString(),
+                        updated_at: new Date().toISOString()
+                    };
+
+                    const { data: noteRecord, error: noteError } = await supabase
+                        .from('notes')
+                        .insert([tempNoteData])
+                        .select()
+                        .single();
+
+                    if (noteError) throw noteError;
+
+                    // Upload file to Supabase Storage
+                    const uploadResult = await uploadFileToSupabase(file, noteRecord.id);
+
+                    // Update note with actual file URL
+                    const { error: updateError } = await supabase
+                        .from('notes')
+                        .update({
+                            file_url: uploadResult.url,
+                            file_name: uploadResult.fileName,
+                            file_size: uploadResult.fileSize
+                        })
+                        .eq('id', noteRecord.id);
+
+                    if (updateError) throw updateError;
+
+                    fileUrl = uploadResult.url;
+                    fileName = uploadResult.fileName;
+                    fileSize = uploadResult.fileSize;
+                } catch (uploadError) {
+                    console.error('File upload failed:', uploadError);
+                    // Fall back to external link if file upload fails
+                    if (!formData.externalLink) {
+                        throw new Error('File upload failed and no external link provided');
+                    }
+                }
+            } else {
+                // Create note document in Supabase (external link only)
+                const noteData = {
+                    title: formData.title,
+                    subject: formData.subject,
+                    semester: formData.semester,
+                    description: formData.description,
+                    file_url: fileUrl,
+                    file_name: fileName,
+                    file_size: fileSize,
+                    uploader_id: currentUser.id,
+                    uploader_name: userProfile?.name || currentUser.email,
+                    uploader_email: userProfile?.email || currentUser.email,
+                    status: 'pending',
+                    download_count: 0,
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                };
+
+                const { error } = await supabase
+                    .from('notes')
+                    .insert([noteData]);
+
+                if (error) {
+                    throw error;
+                }
+            }
 
             setSuccess(true);
             setFormData({
@@ -121,8 +276,8 @@ const ShareNotes = () => {
                             Note Submitted Successfully!
                         </h2>
                         <p className="text-sm sm:text-base text-secondary-600 mb-6">
-                            Your note has been submitted for review. Once approved by our admin team,
-                            it will be available for other students to access.
+                            Your note has been submitted successfully and is now pending review. Once approved by our admin team,
+                            it will be available for other students to access. {file ? 'Your uploaded file has been securely stored.' : ''}
                         </p>
                         <button
                             onClick={() => setSuccess(false)}
@@ -273,19 +428,52 @@ const ShareNotes = () => {
                             </p>
                         </div>
 
-                        {/* File Upload (Optional - for future when storage is available) */}
+                        {/* File Upload */}
                         <div>
                             <label className="block text-sm font-medium text-secondary-700 mb-2">
-                                Upload File (Optional - Currently Disabled)
+                                Upload File (Optional)
                             </label>
                             <div className="border-2 border-dashed border-secondary-200 rounded-lg p-6 text-center bg-secondary-50">
-                                <Upload size={48} className="mx-auto text-secondary-300 mb-4" />
-                                <p className="text-secondary-500 mb-2">
-                                    File upload requires Firebase Storage (paid plan)
-                                </p>
-                                <p className="text-sm text-secondary-400">
-                                    Use external links above to share your files for now
-                                </p>
+                                {!file ? (
+                                    <>
+                                        <Upload size={48} className="mx-auto text-secondary-400 mb-4" />
+                                        <div className="space-y-2">
+                                            <label htmlFor="file-upload" className="cursor-pointer">
+                                                <span className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                                                    Choose File
+                                                </span>
+                                                <input
+                                                    id="file-upload"
+                                                    type="file"
+                                                    className="sr-only"
+                                                    onChange={handleFileChange}
+                                                    accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif"
+                                                />
+                                            </label>
+                                            <p className="text-sm text-secondary-500">
+                                                Or provide an external link above
+                                            </p>
+                                        </div>
+                                        <p className="text-xs text-secondary-400 mt-2">
+                                            Supports: PDF, DOC, DOCX, TXT, Images (Max: 10MB)
+                                        </p>
+                                    </>
+                                ) : (
+                                    <>
+                                        <CheckCircle size={48} className="mx-auto text-green-500 mb-4" />
+                                        <p className="text-secondary-700 font-medium">{file.name}</p>
+                                        <p className="text-sm text-secondary-500">
+                                            {(file.size / 1024 / 1024).toFixed(2)} MB
+                                        </p>
+                                        <button
+                                            type="button"
+                                            onClick={() => setFile(null)}
+                                            className="mt-2 text-sm text-red-600 hover:text-red-800"
+                                        >
+                                            Remove file
+                                        </button>
+                                    </>
+                                )}
                             </div>
                         </div>
 

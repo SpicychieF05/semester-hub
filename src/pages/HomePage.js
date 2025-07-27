@@ -62,9 +62,6 @@ const HomePage = () => {
                                         style={{
                                             filter: 'drop-shadow(0 25px 50px rgba(0, 0, 0, 0.3))'
                                         }}
-                                        onError={(e) => {
-                                            e.target.src = "/illustrations/undraw_education_3vwh.svg";
-                                        }}
                                         loading="eager"
                                     />
 

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { auth } from '../firebase';
+import { auth, supabase } from '../supabase';
 import { Shield, CheckCircle, AlertCircle } from 'lucide-react';
 
 const AdminSetup = () => {
@@ -17,21 +16,41 @@ const AdminSetup = () => {
             const adminEmail = 'codiverse.dev@gmail.com';
             const adminPassword = '#Codiverse2965';
 
-            const userCredential = await createUserWithEmailAndPassword(
-                auth,
+            // Create admin user in Supabase Auth
+            const { user, error: authError } = await auth.createUserWithEmailAndPassword(
                 adminEmail,
                 adminPassword
             );
 
-            await updateProfile(userCredential.user, {
-                displayName: 'Admin User'
-            });
+            if (authError) {
+                throw authError;
+            }
+
+            // Save admin profile to users table
+            if (user) {
+                const { error: profileError } = await supabase
+                    .from('users')
+                    .insert([
+                        {
+                            id: user.id,
+                            email: user.email,
+                            name: 'Admin User',
+                            role: 'admin',
+                            created_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString()
+                        }
+                    ]);
+
+                if (profileError) {
+                    console.error('Profile creation error:', profileError);
+                }
+            }
 
             setSuccess(true);
             console.log('Admin user created successfully:', adminEmail);
         } catch (error) {
             console.error('Error creating admin user:', error);
-            if (error.code === 'auth/email-already-in-use') {
+            if (error.message?.includes('already registered')) {
                 setError('Admin user already exists');
             } else {
                 setError('Failed to create admin user: ' + error.message);

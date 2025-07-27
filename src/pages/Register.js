@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { auth, supabase } from '../firebase';
+import { auth, supabase } from '../supabase';
 import { Mail, Lock, User, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
 
 const Register = () => {
@@ -55,6 +55,9 @@ const Register = () => {
                 formData.password
             );
 
+            // Show success message with instructions
+            alert('Registration successful! Please check your email for a confirmation link before signing in.');
+
             // Save user profile data to users table
             if (user) {
                 const { error: profileError } = await supabase
@@ -92,12 +95,17 @@ const Register = () => {
         setError('');
 
         try {
-            // For demo - show alert that Google signup is not implemented
-            alert('Google Sign-Up will be available in production. For now, please use email/password.');
-            setError('Google Sign-Up not available in demo mode');
+            await auth.signUpWithGoogle();
+            // OAuth redirect will handle navigation
         } catch (error) {
             console.error('Google sign up error:', error);
-            setError(getErrorMessage(error.code));
+
+            // Check if it's a provider not enabled error
+            if (error.message?.includes('provider is not enabled') || error.error_code === 'validation_failed') {
+                setError('Google Sign-Up is not configured yet. Please use email/password or contact support.');
+            } else {
+                setError('Failed to sign up with Google. Please try again.');
+            }
         } finally {
             setLoading(false);
         }
@@ -146,6 +154,15 @@ const Register = () => {
 
             <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
                 <div className="bg-white py-8 px-4 shadow-sm rounded-lg sm:px-10">
+                    {/* Info banner */}
+                    <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start space-x-2">
+                        <AlertCircle size={20} className="text-blue-500 mt-0.5" />
+                        <div className="text-blue-700 text-sm">
+                            <p className="font-medium mb-1">Email Confirmation Required</p>
+                            <p>After registration, you'll receive a confirmation email. Please click the link in the email before trying to sign in.</p>
+                        </div>
+                    </div>
+
                     {error && (
                         <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 flex items-center space-x-2">
                             <AlertCircle size={20} className="text-red-500" />
