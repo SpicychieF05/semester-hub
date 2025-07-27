@@ -442,7 +442,7 @@ This project was inspired by the need for a secure, modern, and user-friendly pl
   
 ### 🎓 **Semester Hub - Empowering Education Through Technology**
 
-**Built with ❤️ by [Chirantan Mallick](https://github.com/spicychief05)**
+**Built with ❤️ by [Chirantan Mallick](https://linktr.ee/chirantan_mallick)**
 
 [![⭐ Star this repo](https://img.shields.io/github/stars/spicychief05/semester-hub?style=social)](https://github.com/spicychief05/semester-hub)
 [![🍴 Fork this repo](https://img.shields.io/github/forks/spicychief05/semester-hub?style=social)](https://github.com/spicychief05/semester-hub/fork)
