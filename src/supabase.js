@@ -6,10 +6,10 @@ const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 
 // Get the site URL - use environment variable if available, otherwise fallback
 const getSiteUrl = () => {
-    return process.env.REACT_APP_SITE_URL || 
-           (process.env.NODE_ENV === 'production' 
-               ? 'https://semester-hub.vercel.app' 
-               : window.location.origin)
+    return process.env.REACT_APP_SITE_URL ||
+        (process.env.NODE_ENV === 'production'
+            ? 'https://semester-hub.vercel.app'
+            : window.location.origin)
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
