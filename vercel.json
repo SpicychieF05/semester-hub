@@ -108,10 +108,5 @@
         "REACT_APP_SUPABASE_URL": "@react_app_supabase_url",
         "REACT_APP_SUPABASE_ANON_KEY": "@react_app_supabase_anon_key",
         "REACT_APP_SITE_URL": "@react_app_site_url"
-    },
-    "functions": {
-        "app/api/**/*.js": {
-            "runtime": "nodejs18.x"
-        }
     }
 }
