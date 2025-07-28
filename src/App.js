@@ -8,6 +8,7 @@ import Footer from './components/Footer';
 import LoadingScreen from './components/LoadingScreen';
 import ProtectedAdminRoute from './components/ProtectedAdminRoute';
 import ToastContainer from './components/ToastContainer';
+import ErrorBoundary from './components/ErrorBoundary';
 import HomePage from './pages/HomePage';
 import BrowseNotes from './pages/BrowseNotes';
 import ShareNotes from './pages/ShareNotes';
@@ -25,7 +26,16 @@ function App() {
     const [user, setUser] = useState(null);
     const [userProfile, setUserProfile] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [showLoadingScreen, setShowLoadingScreen] = useState(true);    // Auth state management
+    const [showLoadingScreen, setShowLoadingScreen] = useState(true);
+
+    // Debug logging for production
+    useEffect(() => {
+        console.log('App component mounted');
+        console.log('Environment:', process.env.NODE_ENV);
+        console.log('Supabase URL configured:', !!process.env.REACT_APP_SUPABASE_URL);
+    }, []);
+
+    // Auth state management
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged(async (user) => {
             setUser(user);
@@ -88,29 +98,31 @@ function App() {
     }
 
     return (
-        <AppProvider>
-            <Router>
-                <div className="min-h-screen bg-gray-50 flex flex-col">
-                    <Navbar user={currentUser} />
-                    <main className="flex-grow">
-                        <Routes>
-                            <Route path="/" element={<HomePage />} />
-                            <Route path="/browse" element={<BrowseNotes />} />
-                            <Route path="/share" element={currentUser ? <ShareNotes /> : <Login />} />
-                            <Route path="/note/:id" element={<NoteDetail />} />
-                            <Route path="/admin-access" element={<AdminLogin />} />
-                            <Route path="/admin-login" element={<AdminLogin />} />
-                            <Route path="/admin" element={<ProtectedAdminRoute />} />
-                            <Route path="/admin-setup" element={<AdminSetup />} />
-                            <Route path="/login" element={<Login />} />
-                            <Route path="/register" element={<Register />} />
-                        </Routes>
-                    </main>
-                    <Footer />
-                    <ToastContainer />
-                </div>
-            </Router>
-        </AppProvider>
+        <ErrorBoundary>
+            <AppProvider>
+                <Router>
+                    <div className="min-h-screen bg-gray-50 flex flex-col">
+                        <Navbar user={currentUser} />
+                        <main className="flex-grow">
+                            <Routes>
+                                <Route path="/" element={<HomePage />} />
+                                <Route path="/browse" element={<BrowseNotes />} />
+                                <Route path="/share" element={currentUser ? <ShareNotes /> : <Login />} />
+                                <Route path="/note/:id" element={<NoteDetail />} />
+                                <Route path="/admin-access" element={<AdminLogin />} />
+                                <Route path="/admin-login" element={<AdminLogin />} />
+                                <Route path="/admin" element={<ProtectedAdminRoute />} />
+                                <Route path="/admin-setup" element={<AdminSetup />} />
+                                <Route path="/login" element={<Login />} />
+                                <Route path="/register" element={<Register />} />
+                            </Routes>
+                        </main>
+                        <Footer />
+                        <ToastContainer />
+                    </div>
+                </Router>
+            </AppProvider>
+        </ErrorBoundary>
     );
 }
 
