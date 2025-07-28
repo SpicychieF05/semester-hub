@@ -83,7 +83,7 @@ Semester Hub is a modern, secure, and feature-rich platform designed for student
   <small>Auth, Database, RLS, Real-time</small>
 </td>
 <td align="center">
-  <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/tailwindcss/tailwindcss-plain.svg" width="40" height="40"/><br>
+  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/tailwindcss/tailwindcss-plain.svg" width="40" height="40"/><br>
   <strong>Tailwind CSS 3.1.6</strong><br>
   <small>Utility-first CSS framework</small>
 </td>
