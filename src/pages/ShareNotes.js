@@ -80,13 +80,7 @@ const ShareNotes = () => {
         }
     };
 
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        form.setValues(prev => ({
-            ...prev,
-            [name]: value
-        }));
-    };
+    // Use the form's built-in handleChange instead of custom implementation
 
     const uploadFileToSupabase = async (file, noteId) => {
         try {
@@ -321,7 +315,7 @@ const ShareNotes = () => {
                                 name="title"
                                 required
                                 value={form.values.title}
-                                onChange={handleInputChange}
+                                onChange={form.handleChange}
                                 placeholder="e.g., Data Structures and Algorithms - Complete Guide"
                                 className="input-field"
                             />
@@ -338,7 +332,7 @@ const ShareNotes = () => {
                                     name="subject"
                                     required
                                     value={form.values.subject}
-                                    onChange={handleInputChange}
+                                    onChange={form.handleChange}
                                     className="input-field"
                                 >
                                     <option value="">Select Subject</option>
@@ -358,7 +352,7 @@ const ShareNotes = () => {
                                     name="semester"
                                     required
                                     value={form.values.semester}
-                                    onChange={handleInputChange}
+                                    onChange={form.handleChange}
                                     className="input-field"
                                 >
                                     <option value="">Select Semester</option>
@@ -380,7 +374,7 @@ const ShareNotes = () => {
                                 required
                                 rows={4}
                                 value={form.values.description}
-                                onChange={handleInputChange}
+                                onChange={form.handleChange}
                                 placeholder="Describe what your notes cover, topics included, and any special features..."
                                 className="input-field resize-none"
                             />
@@ -396,7 +390,7 @@ const ShareNotes = () => {
                                 id="tags"
                                 name="tags"
                                 value={form.values.tags}
-                                onChange={handleInputChange}
+                                onChange={form.handleChange}
                                 placeholder="e.g., algorithms, data structures, programming (separate with commas)"
                                 className="input-field"
                             />
@@ -415,7 +409,7 @@ const ShareNotes = () => {
                                 id="externalLink"
                                 name="externalLink"
                                 value={form.values.externalLink}
-                                onChange={handleInputChange}
+                                onChange={form.handleChange}
                                 className="w-full px-3 py-2 border border-secondary-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                                 placeholder="https://example.com/your-notes"
                             />
