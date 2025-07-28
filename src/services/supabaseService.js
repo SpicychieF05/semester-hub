@@ -635,5 +635,3 @@ export class SupabaseService {
             .subscribe();
     }
 }
-
-export default SupabaseService;

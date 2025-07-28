@@ -1,7 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase, auth } from '../supabase';
-import SupabaseService from '../services/supabaseService';
+import { SupabaseService } from '../services/supabaseService';
+import { useApp } from '../context/AppContext';
+import { useToast, useModal, useForm } from '../hooks';
+import { ConfirmModal, FormModal } from '../components/Modal';
+import { InputField, SelectField, CheckboxField } from '../components/FormComponents';
 import {
     BookOpen,
     Users,
@@ -19,6 +23,22 @@ import {
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
+
+    // Initialize hooks and context
+    const { state, dispatch } = useApp();
+    const { showToast } = useToast();
+    const { openModal, closeModal } = useModal();
+    const departmentForm = useForm({ name: '', code: '', description: '' });
+    const subjectForm = useForm({ name: '', code: '', description: '', department_id: '' });
+    const semesterForm = useForm({ number: '', name: '', is_active: true });
+    const adminForm = useForm({
+        name: '',
+        email: '',
+        password: '',
+        role: 'admin',
+        permissions: ['manage_notes', 'manage_users'],
+        showPassword: false
+    });
 
     const [activeTab, setActiveTab] = useState('content');
     const [activeContentTab, setActiveContentTab] = useState('departments');
@@ -64,61 +84,18 @@ const AdminDashboard = () => {
     // Initialize tables with default data
     const initializeTables = async () => {
         try {
-            // Insert default departments if they don't exist
-            const defaultDepartments = [
-                { name: 'Computer Science & Engineering', code: 'CSE', description: 'Computer Science and Engineering Department' },
-                { name: 'Electrical Engineering', code: 'EE', description: 'Electrical Engineering Department' },
-                { name: 'Civil Engineering', code: 'CE', description: 'Civil Engineering Department' },
-                { name: 'Mechanical Engineering', code: 'ME', description: 'Mechanical Engineering Department' },
-                { name: 'School of Agriculture', code: 'AGR', description: 'Agriculture Department' },
-                { name: 'School of Computer Applications', code: 'SCA', description: 'Computer Applications Department' }
-            ];
+            // Check if departments exist, if not create default ones
+            const { error: deptError } = await supabase
+                .from('departments')
+                .select('*')
+                .limit(1);
 
-            // Try to insert departments one by one to avoid conflicts
-            for (const dept of defaultDepartments) {
-                try {
-                    await supabase
-                        .from('departments')
-                        .insert([dept])
-                        .select();
-                } catch (insertError) {
-                    // Ignore duplicate key errors
-                    if (!insertError.message?.includes('duplicate key')) {
-                        console.log('Error inserting department:', dept.name, insertError);
-                    }
-                }
+            if (deptError && deptError.code === 'PGRST116') {
+                // Table doesn't exist, but we'll handle this gracefully
+                console.log('Tables may not exist yet, will use fallback data');
             }
-
-            // Insert default semesters if they don't exist
-            const defaultSemesters = [
-                { number: 1, name: 'Semester 1', is_active: true },
-                { number: 2, name: 'Semester 2', is_active: true },
-                { number: 3, name: 'Semester 3', is_active: true },
-                { number: 4, name: 'Semester 4', is_active: true },
-                { number: 5, name: 'Semester 5', is_active: true },
-                { number: 6, name: 'Semester 6', is_active: true },
-                { number: 7, name: 'Semester 7', is_active: true },
-                { number: 8, name: 'Semester 8', is_active: true }
-            ];
-
-            // Try to insert semesters one by one
-            for (const sem of defaultSemesters) {
-                try {
-                    await supabase
-                        .from('semesters')
-                        .insert([sem])
-                        .select();
-                } catch (insertError) {
-                    // Ignore duplicate key errors
-                    if (!insertError.message?.includes('duplicate key')) {
-                        console.log('Error inserting semester:', sem.name, insertError);
-                    }
-                }
-            }
-
-            console.log('Tables initialization completed');
         } catch (error) {
-            console.log('Error initializing tables:', error);
+            console.log('Error checking tables:', error);
         }
     };
 
@@ -211,17 +188,15 @@ const AdminDashboard = () => {
                 setDepartments(departmentsResult.value.data || []);
             } else {
                 console.error('Error fetching departments:', departmentsResult.value?.error);
-                // Try to fetch departments again after initialization
-                try {
-                    const { data: deptData } = await supabase
-                        .from('departments')
-                        .select('*')
-                        .order('name');
-                    setDepartments(deptData || []);
-                } catch (retryError) {
-                    console.error('Retry fetch also failed:', retryError);
-                    setDepartments([]);
-                }
+                // Initialize with default departments if table doesn't exist
+                setDepartments([
+                    { id: 1, name: 'Computer Science & Engineering', code: 'CSE' },
+                    { id: 2, name: 'Electrical Engineering', code: 'EE' },
+                    { id: 3, name: 'Civil Engineering', code: 'CE' },
+                    { id: 4, name: 'Mechanical Engineering', code: 'ME' },
+                    { id: 5, name: 'School of Agriculture', code: 'AGR' },
+                    { id: 6, name: 'School of Computer Applications', code: 'SCA' }
+                ]);
             }
 
             // Process subjects
@@ -237,17 +212,17 @@ const AdminDashboard = () => {
                 setSemesters(semestersResult.value.data || []);
             } else {
                 console.error('Error fetching semesters:', semestersResult.value?.error);
-                // Try to fetch semesters again after initialization
-                try {
-                    const { data: semData } = await supabase
-                        .from('semesters')
-                        .select('*')
-                        .order('number');
-                    setSemesters(semData || []);
-                } catch (retryError) {
-                    console.error('Retry fetch semesters also failed:', retryError);
-                    setSemesters([]);
-                }
+                // Initialize with default semesters
+                setSemesters([
+                    { id: 1, number: 1, name: 'Semester 1', is_active: true },
+                    { id: 2, number: 2, name: 'Semester 2', is_active: true },
+                    { id: 3, number: 3, name: 'Semester 3', is_active: true },
+                    { id: 4, number: 4, name: 'Semester 4', is_active: true },
+                    { id: 5, number: 5, name: 'Semester 5', is_active: true },
+                    { id: 6, number: 6, name: 'Semester 6', is_active: true },
+                    { id: 7, number: 7, name: 'Semester 7', is_active: true },
+                    { id: 8, number: 8, name: 'Semester 8', is_active: true }
+                ]);
             }
 
             // Process activity log
@@ -327,69 +302,6 @@ const AdminDashboard = () => {
         };
 
         checkAuth();
-
-        // Set up real-time subscriptions for automatic updates
-        const subscriptions = [];
-
-        // Subscribe to notes changes
-        const notesSubscription = SupabaseService.subscribeToNotes((payload) => {
-            console.log('Real-time notes update:', payload);
-            fetchData(); // Refresh all data when notes change
-        });
-        subscriptions.push(notesSubscription);
-
-        // Subscribe to users changes
-        const usersSubscription = SupabaseService.subscribeToUsers((payload) => {
-            console.log('Real-time users update:', payload);
-            fetchData(); // Refresh all data when users change
-        });
-        subscriptions.push(usersSubscription);
-
-        // Subscribe to activity changes
-        const activitySubscription = SupabaseService.subscribeToActivity((payload) => {
-            console.log('Real-time activity update:', payload);
-            fetchData(); // Refresh all data when activity changes
-        });
-        subscriptions.push(activitySubscription);
-
-        // Subscribe to departments changes
-        const departmentsSubscription = supabase
-            .channel('departments_changes')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'departments' }, (payload) => {
-                console.log('Real-time departments update:', payload);
-                fetchData(); // Refresh all data when departments change
-            })
-            .subscribe();
-        subscriptions.push(departmentsSubscription);
-
-        // Subscribe to subjects changes
-        const subjectsSubscription = supabase
-            .channel('subjects_changes')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'subjects' }, (payload) => {
-                console.log('Real-time subjects update:', payload);
-                fetchData(); // Refresh all data when subjects change
-            })
-            .subscribe();
-        subscriptions.push(subjectsSubscription);
-
-        // Subscribe to semesters changes
-        const semestersSubscription = supabase
-            .channel('semesters_changes')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'semesters' }, (payload) => {
-                console.log('Real-time semesters update:', payload);
-                fetchData(); // Refresh all data when semesters change
-            })
-            .subscribe();
-        subscriptions.push(semestersSubscription);
-
-        // Cleanup subscriptions on unmount
-        return () => {
-            subscriptions.forEach(subscription => {
-                if (subscription && subscription.unsubscribe) {
-                    subscription.unsubscribe();
-                }
-            });
-        };
     }, [navigate, fetchData]);
 
     // Department CRUD operations
@@ -407,15 +319,16 @@ const AdminDashboard = () => {
                 description: newDepartment.description.trim()
             };
 
-            const { data, error } = await SupabaseService.createDepartment(departmentData);
+            const { error } = await supabase
+                .from('departments')
+                .insert([departmentData]);
 
             if (error) throw error;
 
-            console.log('Department added successfully:', data);
             alert('Department added successfully!');
             setShowAddDepartmentModal(false);
             setNewDepartment({ name: '', code: '', description: '' });
-            // Data will auto-refresh via real-time subscription
+            fetchData();
         } catch (error) {
             console.error('Error adding department:', error);
             alert('Error adding department: ' + (error.message || 'Unknown error occurred'));
@@ -426,15 +339,18 @@ const AdminDashboard = () => {
         if (!window.confirm('Are you sure you want to delete this department?')) return;
 
         try {
-            const { error } = await SupabaseService.deleteDepartment(id);
+            const { error } = await supabase
+                .from('departments')
+                .delete()
+                .eq('id', id);
 
             if (error) throw error;
 
             alert('Department deleted successfully!');
-            // Data will auto-refresh via real-time subscription
+            fetchData();
         } catch (error) {
             console.error('Error deleting department:', error);
-            alert('Error deleting department: ' + (error.message || 'Unknown error occurred'));
+            alert('Error deleting department: ' + error.message);
         }
     };
 
@@ -460,29 +376,19 @@ const AdminDashboard = () => {
                 department_id: parseInt(newSubject.department_id)
             };
 
-            console.log('Adding subject with data:', subjectData);
+            const { error } = await supabase
+                .from('subjects')
+                .insert([subjectData]);
 
-            const { data, error } = await SupabaseService.createSubject(subjectData);
+            if (error) throw error;
 
-            if (error) {
-                console.error('Supabase error details:', error);
-                throw error;
-            }
-
-            console.log('Subject added successfully:', data);
             alert('Subject added successfully!');
             setShowAddSubjectModal(false);
             setNewSubject({ name: '', code: '', description: '', department_id: '' });
-            // Data will auto-refresh via real-time subscription
+            fetchData();
         } catch (error) {
             console.error('Error adding subject:', error);
-            console.error('Error details:', {
-                message: error.message,
-                code: error.code,
-                details: error.details,
-                hint: error.hint
-            });
-            alert('Error adding subject: ' + (error.message || error.code || 'Unknown error occurred'));
+            alert('Error adding subject: ' + (error.message || 'Unknown error occurred'));
         }
     };
 
@@ -490,15 +396,18 @@ const AdminDashboard = () => {
         if (!window.confirm('Are you sure you want to delete this subject?')) return;
 
         try {
-            const { error } = await SupabaseService.deleteSubject(id);
+            const { error } = await supabase
+                .from('subjects')
+                .delete()
+                .eq('id', id);
 
             if (error) throw error;
 
             alert('Subject deleted successfully!');
-            // Data will auto-refresh via real-time subscription
+            fetchData();
         } catch (error) {
             console.error('Error deleting subject:', error);
-            alert('Error deleting subject: ' + (error.message || 'Unknown error occurred'));
+            alert('Error deleting subject: ' + error.message);
         }
     };
 
@@ -517,15 +426,16 @@ const AdminDashboard = () => {
                 is_active: newSemester.is_active
             };
 
-            const { data, error } = await SupabaseService.createSemester(semesterData);
+            const { error } = await supabase
+                .from('semesters')
+                .insert([semesterData]);
 
             if (error) throw error;
 
-            console.log('Semester added successfully:', data);
             alert('Semester added successfully!');
             setShowAddSemesterModal(false);
             setNewSemester({ number: '', name: '', is_active: true });
-            // Data will auto-refresh via real-time subscription
+            fetchData();
         } catch (error) {
             console.error('Error adding semester:', error);
             alert('Error adding semester: ' + (error.message || 'Unknown error occurred'));
@@ -536,31 +446,51 @@ const AdminDashboard = () => {
         if (!window.confirm('Are you sure you want to delete this semester?')) return;
 
         try {
-            const { error } = await SupabaseService.deleteSemester(id);
+            const { error } = await supabase
+                .from('semesters')
+                .delete()
+                .eq('id', id);
 
             if (error) throw error;
 
             alert('Semester deleted successfully!');
-            // Data will auto-refresh via real-time subscription
+            fetchData();
         } catch (error) {
             console.error('Error deleting semester:', error);
-            alert('Error deleting semester: ' + (error.message || 'Unknown error occurred'));
+            alert('Error deleting semester: ' + error.message);
         }
     };
 
     // Note approval operations
     const handleApproveNote = async (noteId) => {
         try {
-            const { data, error } = await SupabaseService.approveNote(noteId, currentAdmin?.id);
+            const { error } = await supabase
+                .from('notes')
+                .update({
+                    status: 'approved',
+                    approved_at: new Date().toISOString(),
+                    approved_by: currentAdmin?.id
+                })
+                .eq('id', noteId);
 
             if (error) throw error;
 
-            console.log('Note approved successfully:', data);
+            // Log admin action
+            await supabase
+                .from('admin_actions')
+                .insert([{
+                    admin_id: currentAdmin?.id,
+                    action: 'approve_note',
+                    target_type: 'note',
+                    target_id: noteId,
+                    details: 'Note approved'
+                }]);
+
             alert('Note approved successfully!');
-            // Data will auto-refresh via real-time subscription
+            fetchData();
         } catch (error) {
             console.error('Error approving note:', error);
-            alert('Error approving note: ' + (error.message || 'Unknown error occurred'));
+            alert('Error approving note: ' + error.message);
         }
     };
 
@@ -569,16 +499,32 @@ const AdminDashboard = () => {
         if (!reason) return;
 
         try {
-            const { data, error } = await SupabaseService.rejectNote(noteId, currentAdmin?.id, reason);
+            const { error } = await supabase
+                .from('notes')
+                .update({
+                    status: 'rejected',
+                    rejection_reason: reason
+                })
+                .eq('id', noteId);
 
             if (error) throw error;
 
-            console.log('Note rejected successfully:', data);
+            // Log admin action
+            await supabase
+                .from('admin_actions')
+                .insert([{
+                    admin_id: currentAdmin?.id,
+                    action: 'reject_note',
+                    target_type: 'note',
+                    target_id: noteId,
+                    details: `Note rejected: ${reason}`
+                }]);
+
             alert('Note rejected successfully!');
-            // Data will auto-refresh via real-time subscription
+            fetchData();
         } catch (error) {
             console.error('Error rejecting note:', error);
-            alert('Error rejecting note: ' + (error.message || 'Unknown error occurred'));
+            alert('Error rejecting note: ' + error.message);
         }
     };
 
@@ -586,15 +532,29 @@ const AdminDashboard = () => {
         if (!window.confirm('Are you sure you want to delete this note? This action cannot be undone.')) return;
 
         try {
-            const { error } = await SupabaseService.deleteNote(noteId);
+            const { error } = await supabase
+                .from('notes')
+                .delete()
+                .eq('id', noteId);
 
             if (error) throw error;
 
+            // Log admin action
+            await supabase
+                .from('admin_actions')
+                .insert([{
+                    admin_id: currentAdmin?.id,
+                    action: 'delete_note',
+                    target_type: 'note',
+                    target_id: noteId,
+                    details: 'Note deleted'
+                }]);
+
             alert('Note deleted successfully!');
-            // Data will auto-refresh via real-time subscription
+            fetchData();
         } catch (error) {
             console.error('Error deleting note:', error);
-            alert('Error deleting note: ' + (error.message || 'Unknown error occurred'));
+            alert('Error deleting note: ' + error.message);
         }
     };
 
@@ -604,31 +564,34 @@ const AdminDashboard = () => {
         if (!reason) return;
 
         try {
-            const { data, error } = await SupabaseService.updateUserStatus(userId, 'banned', reason);
+            const { error } = await supabase.rpc('ban_user', {
+                p_user_id: userId,
+                p_reason: reason
+            });
 
             if (error) throw error;
 
-            console.log('User banned successfully:', data);
             alert('User banned successfully!');
-            // Data will auto-refresh via real-time subscription
+            fetchData();
         } catch (error) {
             console.error('Error banning user:', error);
-            alert('Error banning user: ' + (error.message || 'Unknown error occurred'));
+            alert('Error banning user: ' + error.message);
         }
     };
 
     const handleUnbanUser = async (userId) => {
         try {
-            const { data, error } = await SupabaseService.updateUserStatus(userId, 'active');
+            const { error } = await supabase.rpc('unban_user', {
+                p_user_id: userId
+            });
 
             if (error) throw error;
 
-            console.log('User unbanned successfully:', data);
             alert('User unbanned successfully!');
-            // Data will auto-refresh via real-time subscription
+            fetchData();
         } catch (error) {
             console.error('Error unbanning user:', error);
-            alert('Error unbanning user: ' + (error.message || 'Unknown error occurred'));
+            alert('Error unbanning user: ' + error.message);
         }
     };
 

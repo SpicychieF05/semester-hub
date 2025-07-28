@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { supabase } from '../supabase';
-import SupabaseService from '../services/supabaseService';
+import { SupabaseService } from '../services/supabaseService';
 
 // Initial state
 const initialState = {
@@ -13,7 +13,6 @@ const initialState = {
     subjects: [],
     semesters: [],
     activityLog: [],
-    toasts: [], // Add toasts array
     statistics: {
         totalUsers: 0,
         totalNotes: 0,
@@ -52,10 +51,7 @@ const ActionTypes = {
     ADD_SEMESTER: 'ADD_SEMESTER',
     UPDATE_SEMESTER: 'UPDATE_SEMESTER',
     DELETE_SEMESTER: 'DELETE_SEMESTER',
-    ADD_ACTIVITY: 'ADD_ACTIVITY',
-    ADD_TOAST: 'ADD_TOAST',
-    REMOVE_TOAST: 'REMOVE_TOAST',
-    CLEAR_TOASTS: 'CLEAR_TOASTS'
+    ADD_ACTIVITY: 'ADD_ACTIVITY'
 };
 
 // Reducer
@@ -235,24 +231,6 @@ const appReducer = (state, action) => {
             return {
                 ...state,
                 activityLog: [action.payload, ...state.activityLog]
-            };
-
-        case ActionTypes.ADD_TOAST:
-            return {
-                ...state,
-                toasts: [...state.toasts, action.payload]
-            };
-
-        case ActionTypes.REMOVE_TOAST:
-            return {
-                ...state,
-                toasts: state.toasts.filter(toast => toast.id !== action.payload)
-            };
-
-        case ActionTypes.CLEAR_TOASTS:
-            return {
-                ...state,
-                toasts: []
             };
 
         default:
@@ -590,31 +568,6 @@ export const AppProvider = ({ children }) => {
 
         clearError: () => {
             dispatch({ type: ActionTypes.SET_ERROR, payload: null });
-        },
-
-        // Toast actions
-        addToast: (toast) => {
-            const toastWithId = {
-                ...toast,
-                id: Date.now() + Math.random(), // Simple unique ID
-                duration: toast.duration || 5000
-            };
-            dispatch({ type: ActionTypes.ADD_TOAST, payload: toastWithId });
-
-            // Auto-remove toast after duration
-            if (toastWithId.duration > 0) {
-                setTimeout(() => {
-                    dispatch({ type: ActionTypes.REMOVE_TOAST, payload: toastWithId.id });
-                }, toastWithId.duration);
-            }
-        },
-
-        removeToast: (id) => {
-            dispatch({ type: ActionTypes.REMOVE_TOAST, payload: id });
-        },
-
-        clearToasts: () => {
-            dispatch({ type: ActionTypes.CLEAR_TOASTS });
         }
     };
 

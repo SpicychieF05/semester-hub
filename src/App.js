@@ -15,6 +15,7 @@ import HomePage from './pages/HomePage';
 import BrowseNotes from './pages/BrowseNotes';
 import ShareNotes from './pages/ShareNotes';
 import AdminLogin from './pages/AdminLogin';
+import AdminDashboard from './pages/AdminDashboard';
 import AdminSetup from './pages/AdminSetup';
 import Login from './pages/Login';
 import Register from './pages/Register';

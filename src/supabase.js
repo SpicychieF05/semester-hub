@@ -1,8 +1,13 @@
 import { createClient } from '@supabase/supabase-js'
 
-// Real Supabase configuration
-const supabaseUrl = 'https://uevunvpcbvvduvjqcwwl.supabase.co'
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVldnVudnBjYnZ2ZHV2anFjd3dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM2NDQ0MjcsImV4cCI6MjA2OTIyMDQyN30.HvcQZb-dw0cp4PvKF5xTQguasNk-2hlgINGWDc7zjr4'
+// Use environment variables for Supabase configuration
+const supabaseUrl = process.env.REACT_APP_SUPABASE_URL
+const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY
+
+// Validate that environment variables are set
+if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Missing Supabase environment variables. Please check your .env file.')
+}
 
 // Get the site URL - use environment variable if available, otherwise fallback
 const getSiteUrl = () => {
