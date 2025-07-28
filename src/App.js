@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { auth, supabase } from './supabase';
-
-// Context and Services
 import { AppProvider } from './context/AppContext';
+import './debug-env'; // Import debug info
 
 // Components
 import Navbar from './components/Navbar';
@@ -20,6 +18,59 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import NoteDetail from './pages/NoteDetail';
 import LoadingSpinner from './components/LoadingSpinner';
+
+// Error boundary component
+class ErrorBoundary extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = { hasError: false, error: null };
+    }
+
+    static getDerivedStateFromError(error) {
+        return { hasError: true, error };
+    }
+
+    componentDidCatch(error, errorInfo) {
+        console.error('App Error:', error, errorInfo);
+    }
+
+    render() {
+        if (this.state.hasError) {
+            return (
+                <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                    <div className="text-center p-8">
+                        <h1 className="text-2xl font-bold text-red-600 mb-4">Something went wrong</h1>
+                        <p className="text-gray-600 mb-4">
+                            {this.state.error?.message || 'An unexpected error occurred'}
+                        </p>
+                        <button
+                            onClick={() => window.location.reload()}
+                            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                        >
+                            Reload Page
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+
+        return this.props.children;
+    }
+}
+
+let auth, supabase;
+
+try {
+    // Import Supabase with error handling
+    const supabaseModule = require('./supabase');
+    auth = supabaseModule.auth;
+    supabase = supabaseModule.supabase;
+} catch (error) {
+    console.error('Failed to initialize Supabase:', error);
+    // Create fallback objects to prevent further errors
+    auth = { onAuthStateChanged: () => () => { }, createOrUpdateProfile: () => Promise.resolve() };
+    supabase = { from: () => ({ select: () => ({ eq: () => ({ single: () => Promise.resolve({ data: null, error: null }) }) }) }) };
+}
 
 function App() {
     const [user, setUser] = useState(null);
@@ -101,29 +152,31 @@ function App() {
     }
 
     return (
-        <AppProvider>
-            <Router>
-                <div className="min-h-screen bg-gray-50 flex flex-col">
-                    <Navbar user={currentUser} />
-                    <main className="flex-grow">
-                        <Routes>
-                            <Route path="/" element={<HomePage />} />
-                            <Route path="/browse" element={<BrowseNotes />} />
-                            <Route path="/share" element={currentUser ? <ShareNotes /> : <Login />} />
-                            <Route path="/note/:id" element={<NoteDetail />} />
-                            <Route path="/admin-access" element={<AdminLogin />} />
-                            <Route path="/admin-login" element={<AdminLogin />} />
-                            <Route path="/admin" element={<ProtectedAdminRoute />} />
-                            <Route path="/admin-setup" element={<AdminSetup />} />
-                            <Route path="/login" element={<Login />} />
-                            <Route path="/register" element={<Register />} />
-                        </Routes>
-                    </main>
-                    <Footer />
-                    <ToastContainer />
-                </div>
-            </Router>
-        </AppProvider>
+        <ErrorBoundary>
+            <AppProvider>
+                <Router>
+                    <div className="min-h-screen bg-gray-50 flex flex-col">
+                        <Navbar user={currentUser} />
+                        <main className="flex-grow">
+                            <Routes>
+                                <Route path="/" element={<HomePage />} />
+                                <Route path="/browse" element={<BrowseNotes />} />
+                                <Route path="/share" element={currentUser ? <ShareNotes /> : <Login />} />
+                                <Route path="/note/:id" element={<NoteDetail />} />
+                                <Route path="/admin-access" element={<AdminLogin />} />
+                                <Route path="/admin-login" element={<AdminLogin />} />
+                                <Route path="/admin" element={<ProtectedAdminRoute />} />
+                                <Route path="/admin-setup" element={<AdminSetup />} />
+                                <Route path="/login" element={<Login />} />
+                                <Route path="/register" element={<Register />} />
+                            </Routes>
+                        </main>
+                        <Footer />
+                        <ToastContainer />
+                    </div>
+                </Router>
+            </AppProvider>
+        </ErrorBoundary>
     );
 }
 

@@ -6,6 +6,16 @@ const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY
 
 // Validate that environment variables are set
 if (!supabaseUrl || !supabaseAnonKey) {
+    console.error('Missing Supabase environment variables:', {
+        supabaseUrl: !!supabaseUrl,
+        supabaseAnonKey: !!supabaseAnonKey
+    });
+
+    // In production, we'll show a user-friendly error instead of crashing
+    if (process.env.NODE_ENV === 'production') {
+        console.error('Please configure environment variables on Vercel');
+    }
+
     throw new Error('Missing Supabase environment variables. Please check your .env file.')
 }
 
