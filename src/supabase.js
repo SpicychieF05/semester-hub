@@ -11,7 +11,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 const getSiteUrl = () => {
     return process.env.REACT_APP_SITE_URL ||
         (process.env.NODE_ENV === 'production'
-            ? 'https://semester-hub.vercel.app'
+            ? 'https://semesterhub.vercel.app'
             : window.location.origin)
 }
 
