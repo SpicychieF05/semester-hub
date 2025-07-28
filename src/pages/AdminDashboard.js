@@ -1,33 +1,49 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { auth, supabase } from '../supabase';
+import { supabase, auth } from '../supabase';
+import SupabaseService from '../services/supabaseService';
 import {
-    Users, BookOpen, CheckCircle, XCircle,
-    Trash2, Calendar, Download, AlertTriangle, LogOut,
-    Ban, Shield, ShieldOff, UserPlus, X, Eye, EyeOff, RefreshCw
+    BookOpen,
+    Users,
+    Clock,
+    Download,
+    RefreshCw,
+    LogOut,
+    Plus,
+    Trash2,
+    UserPlus,
+    X,
+    Eye,
+    EyeOff
 } from 'lucide-react';
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState('overview');
+
+    const [activeTab, setActiveTab] = useState('content');
+    const [activeContentTab, setActiveContentTab] = useState('departments');
     const [pendingNotes, setPendingNotes] = useState([]);
     const [approvedNotes, setApprovedNotes] = useState([]);
     const [users, setUsers] = useState([]);
     const [admins, setAdmins] = useState([]);
-    const [adminActions, setAdminActions] = useState([]);
     const [currentAdmin, setCurrentAdmin] = useState(null);
-    const [stats, setStats] = useState({
-        totalNotes: 0,
-        pendingReview: 0,
-        totalUsers: 0,
-        totalDownloads: 0
-    });
+    const [departments, setDepartments] = useState([]);
+    const [subjects, setSubjects] = useState([]);
+    const [semesters, setSemesters] = useState([]);
+    const [activityLog, setActivityLog] = useState([]);
     const [loading, setLoading] = useState(true);
     const [lastRefresh, setLastRefresh] = useState(null);
-    const [showBanModal, setShowBanModal] = useState(false);
+
+    // Modal states
+    const [showAddDepartmentModal, setShowAddDepartmentModal] = useState(false);
+    const [showAddSubjectModal, setShowAddSubjectModal] = useState(false);
+    const [showAddSemesterModal, setShowAddSemesterModal] = useState(false);
     const [showNewAdminModal, setShowNewAdminModal] = useState(false);
-    const [banReason, setBanReason] = useState('');
-    const [selectedUserToBan, setSelectedUserToBan] = useState(null);
+
+    // Form states
+    const [newDepartment, setNewDepartment] = useState({ name: '', code: '', description: '' });
+    const [newSubject, setNewSubject] = useState({ name: '', code: '', description: '', department_id: '' });
+    const [newSemester, setNewSemester] = useState({ number: '', name: '', is_active: true });
     const [newAdminData, setNewAdminData] = useState({
         name: '',
         email: '',
@@ -37,916 +53,603 @@ const AdminDashboard = () => {
         showPassword: false
     });
 
+    // Stats state
+    const [stats, setStats] = useState({
+        totalNotes: 0,
+        pendingReview: 0,
+        totalUsers: 0,
+        totalDownloads: 0
+    });
+
+    // Initialize tables with default data
+    const initializeTables = async () => {
+        try {
+            // Insert default departments if they don't exist
+            const defaultDepartments = [
+                { name: 'Computer Science & Engineering', code: 'CSE', description: 'Computer Science and Engineering Department' },
+                { name: 'Electrical Engineering', code: 'EE', description: 'Electrical Engineering Department' },
+                { name: 'Civil Engineering', code: 'CE', description: 'Civil Engineering Department' },
+                { name: 'Mechanical Engineering', code: 'ME', description: 'Mechanical Engineering Department' },
+                { name: 'School of Agriculture', code: 'AGR', description: 'Agriculture Department' },
+                { name: 'School of Computer Applications', code: 'SCA', description: 'Computer Applications Department' }
+            ];
+
+            // Try to insert departments one by one to avoid conflicts
+            for (const dept of defaultDepartments) {
+                try {
+                    await supabase
+                        .from('departments')
+                        .insert([dept])
+                        .select();
+                } catch (insertError) {
+                    // Ignore duplicate key errors
+                    if (!insertError.message?.includes('duplicate key')) {
+                        console.log('Error inserting department:', dept.name, insertError);
+                    }
+                }
+            }
+
+            // Insert default semesters if they don't exist
+            const defaultSemesters = [
+                { number: 1, name: 'Semester 1', is_active: true },
+                { number: 2, name: 'Semester 2', is_active: true },
+                { number: 3, name: 'Semester 3', is_active: true },
+                { number: 4, name: 'Semester 4', is_active: true },
+                { number: 5, name: 'Semester 5', is_active: true },
+                { number: 6, name: 'Semester 6', is_active: true },
+                { number: 7, name: 'Semester 7', is_active: true },
+                { number: 8, name: 'Semester 8', is_active: true }
+            ];
+
+            // Try to insert semesters one by one
+            for (const sem of defaultSemesters) {
+                try {
+                    await supabase
+                        .from('semesters')
+                        .insert([sem])
+                        .select();
+                } catch (insertError) {
+                    // Ignore duplicate key errors
+                    if (!insertError.message?.includes('duplicate key')) {
+                        console.log('Error inserting semester:', sem.name, insertError);
+                    }
+                }
+            }
+
+            console.log('Tables initialization completed');
+        } catch (error) {
+            console.log('Error initializing tables:', error);
+        }
+    };
+
     const fetchData = useCallback(async () => {
         try {
             console.log('AdminDashboard: Starting to fetch data...');
             setLoading(true);
 
-            // Fetch real users from Supabase
-            const { data: realUsers, error: usersError } = await supabase
-                .from('users')
-                .select('*')
-                .eq('role', 'user')
-                .order('created_at', { ascending: false });
+            // First, ensure tables exist by creating them if they don't
+            await initializeTables();
 
-            // Fetch real admins from Supabase
-            const { data: realAdmins, error: adminsError } = await supabase
-                .from('users')
-                .select('*')
-                .eq('role', 'admin')
-                .order('created_at', { ascending: false });
+            // Fetch all data in parallel
+            const [
+                usersResult,
+                adminsResult,
+                notesResult,
+                departmentsResult,
+                subjectsResult,
+                semestersResult,
+                activityResult
+            ] = await Promise.allSettled([
+                // Fetch regular users
+                supabase.from('users').select('*').eq('role', 'user').order('created_at', { ascending: false }),
 
-            // Fetch real notes from Supabase
-            const { data: realNotes, error: notesError } = await supabase
-                .from('notes')
-                .select('*')
-                .order('created_at', { ascending: false });
+                // Fetch admins
+                supabase.from('users').select('*').eq('role', 'admin').order('created_at', { ascending: false }),
 
-            // Fetch admin actions for audit log
-            const { data: realAdminActions, error: actionsError } = await supabase
-                .from('admin_actions')
-                .select('*')
-                .order('created_at', { ascending: false })
-                .limit(100); // Limit to last 100 actions
+                // Fetch notes
+                supabase.from('notes').select('*').order('created_at', { ascending: false }),
 
-            if (usersError) console.error('Error fetching users:', usersError);
-            if (adminsError) console.error('Error fetching admins:', adminsError);
-            if (notesError) console.error('Error fetching notes:', notesError);
-            if (actionsError) console.error('Error fetching admin actions:', actionsError);
+                // Fetch departments
+                supabase.from('departments').select('*').order('name'),
 
-            // Calculate notes shared by each user
-            const userNotesCount = {};
-            if (realNotes && realNotes.length > 0) {
-                realNotes.forEach(note => {
-                    const userId = note.uploader_id || note.user_id;
-                    if (userId) {
-                        userNotesCount[userId] = (userNotesCount[userId] || 0) + 1;
-                    }
-                });
+                // Fetch subjects with department info
+                supabase.from('subjects').select('*, departments(name)').order('name'),
+
+                // Fetch semesters
+                supabase.from('semesters').select('*').order('number'),
+
+                // Fetch activity log
+                supabase.from('admin_actions').select('*').order('created_at', { ascending: false }).limit(50)
+            ]);
+
+            // Process users
+            if (usersResult.status === 'fulfilled' && !usersResult.value.error) {
+                const userData = usersResult.value.data || [];
+                setUsers(userData);
+
+                // Update stats with user count
+                setStats(prev => ({
+                    ...prev,
+                    totalUsers: userData.length
+                }));
+            } else {
+                console.error('Error fetching users:', usersResult.value?.error);
+                setUsers([]);
             }
 
-            // Process real data if available, otherwise use demo data
-            const processedUsers = realUsers && realUsers.length > 0 ? realUsers.map(user => ({
-                ...user,
-                joinedDate: new Date(user.created_at),
-                notesShared: userNotesCount[user.id] || 0,
-                status: user.status || (user.banned ? 'banned' : 'active'),
-                banned: user.banned || false,
-                ban_reason: user.ban_reason,
-                banned_at: user.banned_at ? new Date(user.banned_at) : null,
-                banned_by: user.banned_by,
-                lastActive: user.last_active ? new Date(user.last_active) : new Date(user.created_at),
-                auth_provider: user.auth_provider || 'email',
-                permissions: user.permissions ? (typeof user.permissions === 'string' ? JSON.parse(user.permissions) : user.permissions) : [],
-                totalDownloads: 0 // Can be calculated from download logs if implemented
-            })) : [
-                // Demo data fallback
-                {
-                    id: '1',
-                    name: 'Amit Kumar',
-                    email: 'amit.kumar@student.edu',
-                    joinedDate: new Date('2024-01-10'),
-                    notesShared: 12,
-                    status: 'active',
-                    role: 'user',
-                    auth_provider: 'email'
-                },
-                {
-                    id: '2',
-                    name: 'Sneha Patel',
-                    email: 'sneha.patel@student.edu',
-                    joinedDate: new Date('2024-01-08'),
-                    notesShared: 8,
-                    status: 'active',
-                    role: 'user',
-                    auth_provider: 'google'
+            // Process admins
+            if (adminsResult.status === 'fulfilled' && !adminsResult.value.error) {
+                setAdmins(adminsResult.value.data || []);
+            } else {
+                console.error('Error fetching admins:', adminsResult.value?.error);
+                setAdmins([]);
+            }
+
+            // Process notes
+            if (notesResult.status === 'fulfilled' && !notesResult.value.error) {
+                const allNotes = notesResult.value.data || [];
+                setPendingNotes(allNotes.filter(note => note.status === 'pending'));
+                setApprovedNotes(allNotes.filter(note => note.status === 'approved'));
+
+                // Calculate stats
+                const totalNotes = allNotes.length;
+                const pendingReview = allNotes.filter(note => note.status === 'pending').length;
+
+                setStats(prev => ({
+                    ...prev,
+                    totalNotes,
+                    pendingReview
+                }));
+            } else {
+                console.error('Error fetching notes:', notesResult.value?.error);
+                setPendingNotes([]);
+                setApprovedNotes([]);
+            }
+
+            // Process departments
+            if (departmentsResult.status === 'fulfilled' && !departmentsResult.value.error) {
+                setDepartments(departmentsResult.value.data || []);
+            } else {
+                console.error('Error fetching departments:', departmentsResult.value?.error);
+                // Try to fetch departments again after initialization
+                try {
+                    const { data: deptData } = await supabase
+                        .from('departments')
+                        .select('*')
+                        .order('name');
+                    setDepartments(deptData || []);
+                } catch (retryError) {
+                    console.error('Retry fetch also failed:', retryError);
+                    setDepartments([]);
                 }
-            ];
+            }
 
-            const processedAdmins = realAdmins && realAdmins.length > 0 ? realAdmins.map(admin => ({
-                ...admin,
-                joinedDate: new Date(admin.created_at),
-                status: admin.status || 'active',
-                auth_provider: admin.auth_provider || 'email',
-                permissions: admin.permissions ? (typeof admin.permissions === 'string' ? JSON.parse(admin.permissions) : admin.permissions) : ['manage_notes', 'manage_users']
-            })) : [
-                // Demo data fallback
-                {
-                    id: 'admin1',
-                    name: 'Chirantan Mallick',
-                    email: 'codiverse.dev@gmail.com',
-                    joinedDate: new Date('2023-12-01'),
-                    role: 'admin',
-                    status: 'active',
-                    permissions: ['all']
+            // Process subjects
+            if (subjectsResult.status === 'fulfilled' && !subjectsResult.value.error) {
+                setSubjects(subjectsResult.value.data || []);
+            } else {
+                console.error('Error fetching subjects:', subjectsResult.value?.error);
+                setSubjects([]);
+            }
+
+            // Process semesters
+            if (semestersResult.status === 'fulfilled' && !semestersResult.value.error) {
+                setSemesters(semestersResult.value.data || []);
+            } else {
+                console.error('Error fetching semesters:', semestersResult.value?.error);
+                // Try to fetch semesters again after initialization
+                try {
+                    const { data: semData } = await supabase
+                        .from('semesters')
+                        .select('*')
+                        .order('number');
+                    setSemesters(semData || []);
+                } catch (retryError) {
+                    console.error('Retry fetch semesters also failed:', retryError);
+                    setSemesters([]);
                 }
-            ];
+            }
 
-            const processedNotes = realNotes || [];
-            const pendingNotes = processedNotes.filter(note => note.status === 'pending');
-            const approvedNotes = processedNotes.filter(note => note.status === 'approved');
+            // Process activity log
+            if (activityResult.status === 'fulfilled' && !activityResult.value.error) {
+                setActivityLog(activityResult.value.data || []);
+            } else {
+                console.error('Error fetching activity log:', activityResult.value?.error);
+                setActivityLog([]);
+            }
 
-            setUsers(processedUsers);
-            setAdmins(processedAdmins);
-            setPendingNotes(pendingNotes);
-            setApprovedNotes(approvedNotes);
-            setAdminActions(realAdminActions || []);
-
-            // Calculate stats
-            const totalDownloads = approvedNotes.reduce((sum, note) => sum + (note.download_count || 0), 0);
-            setStats({
-                totalNotes: approvedNotes.length,
-                pendingReview: pendingNotes.length,
-                totalUsers: processedUsers.length,
-                totalDownloads
-            });
+            setLastRefresh(new Date());
+            console.log('AdminDashboard: Data fetched successfully');
 
         } catch (error) {
-            console.error('Error loading data:', error);
-            // Fallback to demo data on error
-            setUsers([
-                {
-                    id: '1',
-                    name: 'Demo User',
-                    email: 'demo@example.com',
-                    joinedDate: new Date(),
-                    notesShared: 0,
-                    status: 'active',
-                    role: 'user',
-                    auth_provider: 'email'
-                }
-            ]);
-            setAdmins([
-                {
-                    id: 'admin1',
-                    name: 'Demo Admin',
-                    email: 'admin@example.com',
-                    joinedDate: new Date(),
-                    role: 'admin',
-                    status: 'active',
-                    permissions: ['manage_notes', 'manage_users']
-                }
-            ]);
-            setStats({
-                totalNotes: 0,
-                pendingReview: 0,
-                totalUsers: 1,
-                totalDownloads: 0
-            });
+            console.error('AdminDashboard: Error fetching data:', error);
         } finally {
-            console.log('AdminDashboard: Data fetching completed, setting loading to false');
             setLoading(false);
-            setLastRefresh(new Date());
         }
     }, []);
 
     useEffect(() => {
-        const checkAndFetch = async () => {
+        const checkAuth = async () => {
             try {
                 // First check demo admin auth for backwards compatibility
-                const isAdminAuthenticated = localStorage.getItem('demoAdminAuth') === 'true';
+                const demoAdminAuth = localStorage.getItem('demoAdminAuth') === 'true';
+                const demoAdminEmail = localStorage.getItem('demoAdminEmail');
 
-                if (isAdminAuthenticated) {
-                    // Demo admin authentication - proceed directly to fetchData
-                    console.log('Demo admin authenticated, loading dashboard');
-                    const demoAdminEmail = localStorage.getItem('demoAdminEmail');
-                    setCurrentAdmin({
-                        name: 'Admin User',
-                        email: demoAdminEmail || 'codiverse.dev@gmail.com'
-                    });
-                    fetchData();
+                if (demoAdminAuth && demoAdminEmail) {
+                    console.log('Demo admin authenticated, setting up demo admin profile');
+
+                    // Create demo admin profile object
+                    const demoAdmin = {
+                        id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+                        email: demoAdminEmail,
+                        name: 'Demo Admin User',
+                        role: 'admin',
+                        status: 'active',
+                        permissions: ['manage_notes', 'manage_users', 'manage_content'],
+                        auth_provider: 'email'
+                    };
+
+                    setCurrentAdmin(demoAdmin);
+                    await fetchData();
                     return;
                 }
 
-                // Check if user is authenticated through Supabase
+                // If not demo mode, check real Supabase authentication
                 const user = await auth.getCurrentUser();
+
                 if (!user) {
+                    console.log('No authenticated user found, redirecting to admin login');
                     navigate('/admin-login');
                     return;
                 }
 
-                // Check if user has admin role
-                const { data: userProfile, error } = await supabase
+                // Get admin profile from database
+                const { data: adminProfile, error } = await supabase
                     .from('users')
                     .select('*')
                     .eq('id', user.id)
+                    .eq('role', 'admin')
                     .single();
 
-                if (error || !userProfile || userProfile.role !== 'admin') {
+                if (error || !adminProfile) {
+                    console.log('User is not an admin, redirecting to admin login');
                     navigate('/admin-login');
                     return;
                 }
 
-                // Set current admin from database
-                setCurrentAdmin({
-                    name: userProfile.name,
-                    email: userProfile.email
-                });
+                setCurrentAdmin(adminProfile);
+                await fetchData();
 
-                fetchData();
             } catch (error) {
-                console.error('Auth check error:', error);
+                console.error('AdminDashboard: Error checking auth:', error);
                 navigate('/admin-login');
             }
         };
 
-        checkAndFetch();
+        checkAuth();
 
-        // Set up auto-refresh every 30 seconds to catch new users and updates
-        const refreshInterval = setInterval(() => {
-            // Only refresh if we have an admin authenticated
-            const isAdminAuth = localStorage.getItem('demoAdminAuth') === 'true';
-            if (isAdminAuth) {
-                fetchData();
-            }
-        }, 30000);
+        // Set up real-time subscriptions for automatic updates
+        const subscriptions = [];
 
-        // Cleanup interval on unmount
-        return () => clearInterval(refreshInterval);
+        // Subscribe to notes changes
+        const notesSubscription = SupabaseService.subscribeToNotes((payload) => {
+            console.log('Real-time notes update:', payload);
+            fetchData(); // Refresh all data when notes change
+        });
+        subscriptions.push(notesSubscription);
+
+        // Subscribe to users changes
+        const usersSubscription = SupabaseService.subscribeToUsers((payload) => {
+            console.log('Real-time users update:', payload);
+            fetchData(); // Refresh all data when users change
+        });
+        subscriptions.push(usersSubscription);
+
+        // Subscribe to activity changes
+        const activitySubscription = SupabaseService.subscribeToActivity((payload) => {
+            console.log('Real-time activity update:', payload);
+            fetchData(); // Refresh all data when activity changes
+        });
+        subscriptions.push(activitySubscription);
+
+        // Subscribe to departments changes
+        const departmentsSubscription = supabase
+            .channel('departments_changes')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'departments' }, (payload) => {
+                console.log('Real-time departments update:', payload);
+                fetchData(); // Refresh all data when departments change
+            })
+            .subscribe();
+        subscriptions.push(departmentsSubscription);
+
+        // Subscribe to subjects changes
+        const subjectsSubscription = supabase
+            .channel('subjects_changes')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'subjects' }, (payload) => {
+                console.log('Real-time subjects update:', payload);
+                fetchData(); // Refresh all data when subjects change
+            })
+            .subscribe();
+        subscriptions.push(subjectsSubscription);
+
+        // Subscribe to semesters changes
+        const semestersSubscription = supabase
+            .channel('semesters_changes')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'semesters' }, (payload) => {
+                console.log('Real-time semesters update:', payload);
+                fetchData(); // Refresh all data when semesters change
+            })
+            .subscribe();
+        subscriptions.push(semestersSubscription);
+
+        // Cleanup subscriptions on unmount
+        return () => {
+            subscriptions.forEach(subscription => {
+                if (subscription && subscription.unsubscribe) {
+                    subscription.unsubscribe();
+                }
+            });
+        };
     }, [navigate, fetchData]);
 
-    const handleApproveNote = async (noteId) => {
+    // Department CRUD operations
+    const handleAddDepartment = async () => {
+        if (!newDepartment.name.trim() || !newDepartment.code.trim()) {
+            alert('Please fill in department name and code.');
+            return;
+        }
+
         try {
-            // Get current admin info
-            const currentAdminEmail = localStorage.getItem('demoAdminEmail') || 'admin@semesterhub.com';
-            const { data: adminData } = await supabase
-                .from('users')
-                .select('id, name')
-                .eq('email', currentAdminEmail)
-                .single();
+            // Prepare department data
+            const departmentData = {
+                name: newDepartment.name.trim(),
+                code: newDepartment.code.trim(),
+                description: newDepartment.description.trim()
+            };
 
-            const adminId = adminData?.id;
+            const { data, error } = await SupabaseService.createDepartment(departmentData);
 
-            // Get note info for logging
-            const { data: noteData } = await supabase
-                .from('notes')
-                .select('title, uploader_name, uploader_email')
-                .eq('id', noteId)
-                .single();
+            if (error) throw error;
 
-            // Update note status in Supabase
-            const { error } = await supabase
-                .from('notes')
-                .update({
-                    status: 'approved',
-                    updated_at: new Date().toISOString()
-                })
-                .eq('id', noteId);
+            console.log('Department added successfully:', data);
+            alert('Department added successfully!');
+            setShowAddDepartmentModal(false);
+            setNewDepartment({ name: '', code: '', description: '' });
+            // Data will auto-refresh via real-time subscription
+        } catch (error) {
+            console.error('Error adding department:', error);
+            alert('Error adding department: ' + (error.message || 'Unknown error occurred'));
+        }
+    };
+
+    const handleDeleteDepartment = async (id) => {
+        if (!window.confirm('Are you sure you want to delete this department?')) return;
+
+        try {
+            const { error } = await SupabaseService.deleteDepartment(id);
+
+            if (error) throw error;
+
+            alert('Department deleted successfully!');
+            // Data will auto-refresh via real-time subscription
+        } catch (error) {
+            console.error('Error deleting department:', error);
+            alert('Error deleting department: ' + (error.message || 'Unknown error occurred'));
+        }
+    };
+
+    // Subject CRUD operations
+    const handleAddSubject = async () => {
+        if (!newSubject.name.trim() || !newSubject.code.trim()) {
+            alert('Please fill in subject name and code.');
+            return;
+        }
+
+        // Validate department selection
+        if (!newSubject.department_id || newSubject.department_id === '') {
+            alert('Please select a department for the subject.');
+            return;
+        }
+
+        try {
+            // Prepare subject data with proper type conversion
+            const subjectData = {
+                name: newSubject.name.trim(),
+                code: newSubject.code.trim(),
+                description: newSubject.description.trim(),
+                department_id: parseInt(newSubject.department_id)
+            };
+
+            console.log('Adding subject with data:', subjectData);
+
+            const { data, error } = await SupabaseService.createSubject(subjectData);
 
             if (error) {
-                console.error('Error approving note:', error);
-                alert('Error approving note');
-                return;
+                console.error('Supabase error details:', error);
+                throw error;
             }
 
-            // Log admin action
-            if (adminId) {
-                await supabase.rpc('log_admin_action', {
-                    p_admin_id: adminId,
-                    p_action_type: 'approve_note',
-                    p_target_type: 'note',
-                    p_target_id: noteId,
-                    p_target_name: noteData?.title || 'Unknown Note',
-                    p_details: {
-                        previous_status: 'pending',
-                        new_status: 'approved',
-                        uploader_name: noteData?.uploader_name,
-                        uploader_email: noteData?.uploader_email
-                    },
-                    p_reason: 'Note approved by admin'
-                });
-            }
+            console.log('Subject added successfully:', data);
+            alert('Subject added successfully!');
+            setShowAddSubjectModal(false);
+            setNewSubject({ name: '', code: '', description: '', department_id: '' });
+            // Data will auto-refresh via real-time subscription
+        } catch (error) {
+            console.error('Error adding subject:', error);
+            console.error('Error details:', {
+                message: error.message,
+                code: error.code,
+                details: error.details,
+                hint: error.hint
+            });
+            alert('Error adding subject: ' + (error.message || error.code || 'Unknown error occurred'));
+        }
+    };
 
-            // Move note from pending to approved in local state
-            const note = pendingNotes.find(n => n.id === noteId);
-            if (note) {
-                setPendingNotes(prev => prev.filter(n => n.id !== noteId));
-                setApprovedNotes(prev => [{ ...note, status: 'approved', download_count: 0 }, ...prev]);
-                setStats(prev => ({
-                    ...prev,
-                    totalNotes: prev.totalNotes + 1,
-                    pendingReview: prev.pendingReview - 1
-                }));
-                alert('Note approved successfully!');
-            }
+    const handleDeleteSubject = async (id) => {
+        if (!window.confirm('Are you sure you want to delete this subject?')) return;
+
+        try {
+            const { error } = await SupabaseService.deleteSubject(id);
+
+            if (error) throw error;
+
+            alert('Subject deleted successfully!');
+            // Data will auto-refresh via real-time subscription
+        } catch (error) {
+            console.error('Error deleting subject:', error);
+            alert('Error deleting subject: ' + (error.message || 'Unknown error occurred'));
+        }
+    };
+
+    // Semester CRUD operations
+    const handleAddSemester = async () => {
+        if (!newSemester.number || !newSemester.name.trim()) {
+            alert('Please fill in semester number and name.');
+            return;
+        }
+
+        try {
+            // Prepare semester data with proper type conversion
+            const semesterData = {
+                number: parseInt(newSemester.number),
+                name: newSemester.name.trim(),
+                is_active: newSemester.is_active
+            };
+
+            const { data, error } = await SupabaseService.createSemester(semesterData);
+
+            if (error) throw error;
+
+            console.log('Semester added successfully:', data);
+            alert('Semester added successfully!');
+            setShowAddSemesterModal(false);
+            setNewSemester({ number: '', name: '', is_active: true });
+            // Data will auto-refresh via real-time subscription
+        } catch (error) {
+            console.error('Error adding semester:', error);
+            alert('Error adding semester: ' + (error.message || 'Unknown error occurred'));
+        }
+    };
+
+    const handleDeleteSemester = async (id) => {
+        if (!window.confirm('Are you sure you want to delete this semester?')) return;
+
+        try {
+            const { error } = await SupabaseService.deleteSemester(id);
+
+            if (error) throw error;
+
+            alert('Semester deleted successfully!');
+            // Data will auto-refresh via real-time subscription
+        } catch (error) {
+            console.error('Error deleting semester:', error);
+            alert('Error deleting semester: ' + (error.message || 'Unknown error occurred'));
+        }
+    };
+
+    // Note approval operations
+    const handleApproveNote = async (noteId) => {
+        try {
+            const { data, error } = await SupabaseService.approveNote(noteId, currentAdmin?.id);
+
+            if (error) throw error;
+
+            console.log('Note approved successfully:', data);
+            alert('Note approved successfully!');
+            // Data will auto-refresh via real-time subscription
         } catch (error) {
             console.error('Error approving note:', error);
-            alert('Error approving note');
+            alert('Error approving note: ' + (error.message || 'Unknown error occurred'));
         }
     };
 
     const handleRejectNote = async (noteId) => {
-        if (!window.confirm('Are you sure you want to reject this note? This action cannot be undone.')) {
-            return;
-        }
+        const reason = prompt('Please provide a reason for rejection:');
+        if (!reason) return;
 
         try {
-            // Get current admin info
-            const currentAdminEmail = localStorage.getItem('demoAdminEmail') || 'admin@semesterhub.com';
-            const { data: adminData } = await supabase
-                .from('users')
-                .select('id, name')
-                .eq('email', currentAdminEmail)
-                .single();
+            const { data, error } = await SupabaseService.rejectNote(noteId, currentAdmin?.id, reason);
 
-            const adminId = adminData?.id;
+            if (error) throw error;
 
-            // Get note info for logging
-            const { data: noteData } = await supabase
-                .from('notes')
-                .select('title, uploader_name, uploader_email')
-                .eq('id', noteId)
-                .single();
-
-            // Update note status in Supabase
-            const { error } = await supabase
-                .from('notes')
-                .update({
-                    status: 'rejected',
-                    updated_at: new Date().toISOString()
-                })
-                .eq('id', noteId);
-
-            if (error) {
-                console.error('Error rejecting note:', error);
-                alert('Error rejecting note');
-                return;
-            }
-
-            // Log admin action
-            if (adminId) {
-                await supabase.rpc('log_admin_action', {
-                    p_admin_id: adminId,
-                    p_action_type: 'reject_note',
-                    p_target_type: 'note',
-                    p_target_id: noteId,
-                    p_target_name: noteData?.title || 'Unknown Note',
-                    p_details: {
-                        previous_status: 'pending',
-                        new_status: 'rejected',
-                        uploader_name: noteData?.uploader_name,
-                        uploader_email: noteData?.uploader_email
-                    },
-                    p_reason: 'Note rejected by admin'
-                });
-            }
-
-            // Remove from pending notes
-            setPendingNotes(prev => prev.filter(n => n.id !== noteId));
-            setStats(prev => ({
-                ...prev,
-                pendingReview: prev.pendingReview - 1
-            }));
+            console.log('Note rejected successfully:', data);
             alert('Note rejected successfully!');
+            // Data will auto-refresh via real-time subscription
         } catch (error) {
             console.error('Error rejecting note:', error);
-            alert('Error rejecting note');
+            alert('Error rejecting note: ' + (error.message || 'Unknown error occurred'));
         }
     };
 
     const handleDeleteNote = async (noteId) => {
-        if (!window.confirm('Are you sure you want to delete this note? This action cannot be undone.')) {
-            return;
-        }
+        if (!window.confirm('Are you sure you want to delete this note? This action cannot be undone.')) return;
 
         try {
-            // Get current admin info
-            const currentAdminEmail = localStorage.getItem('demoAdminEmail') || 'admin@semesterhub.com';
-            const { data: adminData } = await supabase
-                .from('users')
-                .select('id, name')
-                .eq('email', currentAdminEmail)
-                .single();
+            const { error } = await SupabaseService.deleteNote(noteId);
 
-            const adminId = adminData?.id;
+            if (error) throw error;
 
-            // Get note info for logging before deletion
-            const { data: noteData } = await supabase
-                .from('notes')
-                .select('title, uploader_name, uploader_email, status')
-                .eq('id', noteId)
-                .single();
-
-            // Delete note from Supabase
-            const { error } = await supabase
-                .from('notes')
-                .delete()
-                .eq('id', noteId);
-
-            if (error) {
-                console.error('Error deleting note:', error);
-                alert('Error deleting note');
-                return;
-            }
-
-            // Log admin action
-            if (adminId) {
-                await supabase.rpc('log_admin_action', {
-                    p_admin_id: adminId,
-                    p_action_type: 'delete_note',
-                    p_target_type: 'note',
-                    p_target_id: noteId,
-                    p_target_name: noteData?.title || 'Unknown Note',
-                    p_details: {
-                        previous_status: noteData?.status,
-                        uploader_name: noteData?.uploader_name,
-                        uploader_email: noteData?.uploader_email,
-                        action: 'permanent_deletion'
-                    },
-                    p_reason: 'Note deleted by admin'
-                });
-            }
-
-            // Remove from approved notes
-            setApprovedNotes(prev => prev.filter(n => n.id !== noteId));
-            setStats(prev => ({
-                ...prev,
-                totalNotes: prev.totalNotes - 1
-            }));
             alert('Note deleted successfully!');
+            // Data will auto-refresh via real-time subscription
         } catch (error) {
             console.error('Error deleting note:', error);
-            alert('Error deleting note');
+            alert('Error deleting note: ' + (error.message || 'Unknown error occurred'));
         }
     };
 
-    const handleLogout = async () => {
-        try {
-            // Sign out from Supabase
-            await auth.signOut();
-        } catch (error) {
-            console.error('Error signing out:', error);
-        }
-
-        // Clear demo authentication
-        localStorage.removeItem('demoAdminAuth');
-        localStorage.removeItem('demoAdminEmail');
-        localStorage.removeItem('demoAuthProvider');
-
-        // Trigger custom event to notify components about auth change
-        window.dispatchEvent(new Event('adminAuthChanged'));
-
-        // Navigate to admin login page
-        navigate('/admin-login');
-    };
-
-    // User Management Functions
-    const handleBanUser = async (userId, reason = 'No reason provided') => {
-        if (!window.confirm('Are you sure you want to ban this user? They will lose access to the platform.')) {
-            return;
-        }
+    // User management operations
+    const handleBanUser = async (userId) => {
+        const reason = prompt('Please provide a reason for banning this user:');
+        if (!reason) return;
 
         try {
-            // Get current admin info
-            const currentAdminEmail = localStorage.getItem('demoAdminEmail') || 'admin@semesterhub.com';
-            const { data: adminData } = await supabase
-                .from('users')
-                .select('id, name')
-                .eq('email', currentAdminEmail)
-                .single();
+            const { data, error } = await SupabaseService.updateUserStatus(userId, 'banned', reason);
 
-            const adminId = adminData?.id;
+            if (error) throw error;
 
-            // Get user info for logging
-            const { data: userData } = await supabase
-                .from('users')
-                .select('name, email')
-                .eq('id', userId)
-                .single();
-
-            // Update user status in Supabase with ban details
-            const { error } = await supabase
-                .from('users')
-                .update({
-                    status: 'banned',
-                    banned: true,
-                    ban_reason: reason,
-                    banned_at: new Date().toISOString(),
-                    banned_by: adminId,
-                    updated_at: new Date().toISOString()
-                })
-                .eq('id', userId);
-
-            if (error) {
-                console.error('Error banning user:', error);
-                alert('Error banning user');
-                return;
-            }
-
-            // Log admin action
-            if (adminId) {
-                await supabase.rpc('log_admin_action', {
-                    p_admin_id: adminId,
-                    p_action_type: 'ban_user',
-                    p_target_type: 'user',
-                    p_target_id: userId,
-                    p_target_name: userData?.name || 'Unknown User',
-                    p_details: {
-                        previous_status: 'active',
-                        new_status: 'banned',
-                        user_email: userData?.email
-                    },
-                    p_reason: reason
-                });
-            }
-
-            // Update local state
-            setUsers(prev => prev.map(user =>
-                user.id === userId ? {
-                    ...user,
-                    status: 'banned',
-                    banned: true,
-                    ban_reason: reason,
-                    banned_at: new Date(),
-                    banned_by: adminId
-                } : user
-            ));
-
-            alert('User has been banned successfully.');
-
-            // Refresh data to ensure consistency
-            fetchData();
+            console.log('User banned successfully:', data);
+            alert('User banned successfully!');
+            // Data will auto-refresh via real-time subscription
         } catch (error) {
             console.error('Error banning user:', error);
-            alert('Error banning user');
+            alert('Error banning user: ' + (error.message || 'Unknown error occurred'));
         }
     };
 
     const handleUnbanUser = async (userId) => {
         try {
-            // Get current admin info
-            const currentAdminEmail = localStorage.getItem('demoAdminEmail') || 'admin@semesterhub.com';
-            const { data: adminData } = await supabase
-                .from('users')
-                .select('id, name')
-                .eq('email', currentAdminEmail)
-                .single();
+            const { data, error } = await SupabaseService.updateUserStatus(userId, 'active');
 
-            const adminId = adminData?.id;
+            if (error) throw error;
 
-            // Get user info for logging
-            const { data: userData } = await supabase
-                .from('users')
-                .select('name, email, ban_reason')
-                .eq('id', userId)
-                .single();
-
-            // Update user status in Supabase - clear ban details
-            const { error } = await supabase
-                .from('users')
-                .update({
-                    status: 'active',
-                    banned: false,
-                    ban_reason: null,
-                    banned_at: null,
-                    banned_by: null,
-                    updated_at: new Date().toISOString()
-                })
-                .eq('id', userId);
-
-            if (error) {
-                console.error('Error unbanning user:', error);
-                alert('Error unbanning user');
-                return;
-            }
-
-            // Log admin action
-            if (adminId) {
-                await supabase.rpc('log_admin_action', {
-                    p_admin_id: adminId,
-                    p_action_type: 'unban_user',
-                    p_target_type: 'user',
-                    p_target_id: userId,
-                    p_target_name: userData?.name || 'Unknown User',
-                    p_details: {
-                        previous_status: 'banned',
-                        new_status: 'active',
-                        previous_ban_reason: userData?.ban_reason,
-                        user_email: userData?.email
-                    },
-                    p_reason: 'User unbanned by admin'
-                });
-            }
-
-            // Update local state
-            setUsers(prev => prev.map(user =>
-                user.id === userId ? {
-                    ...user,
-                    status: 'active',
-                    banned: false,
-                    ban_reason: null,
-                    banned_at: null,
-                    banned_by: null
-                } : user
-            ));
-
-            alert('User has been unbanned successfully.');
-
-            // Refresh data to ensure consistency
-            fetchData();
+            console.log('User unbanned successfully:', data);
+            alert('User unbanned successfully!');
+            // Data will auto-refresh via real-time subscription
         } catch (error) {
             console.error('Error unbanning user:', error);
-            alert('Error unbanning user');
+            alert('Error unbanning user: ' + (error.message || 'Unknown error occurred'));
         }
     };
 
-    const handlePromoteToAdmin = async (userId) => {
-        if (!window.confirm('Are you sure you want to promote this user to admin? They will gain administrative privileges.')) {
-            return;
-        }
-
+    const handleLogout = async () => {
         try {
-            // Get current admin info
-            const currentAdminEmail = localStorage.getItem('demoAdminEmail') || 'admin@semesterhub.com';
-            const { data: adminData } = await supabase
-                .from('users')
-                .select('id, name')
-                .eq('email', currentAdminEmail)
-                .single();
+            // Clear demo auth
+            localStorage.removeItem('demoAdminAuth');
+            localStorage.removeItem('demoAdminEmail');
+            localStorage.removeItem('demoAuthProvider');
 
-            const adminId = adminData?.id;
+            // Also sign out from Supabase if there's a real session
+            await auth.signOut();
 
-            // Get user info for logging
-            const { data: userData } = await supabase
-                .from('users')
-                .select('name, email')
-                .eq('id', userId)
-                .single();
+            // Trigger auth change event
+            window.dispatchEvent(new Event('adminAuthChanged'));
 
-            // Update user role in Supabase
-            const { error } = await supabase
-                .from('users')
-                .update({
-                    role: 'admin',
-                    permissions: JSON.stringify(['manage_notes', 'manage_users']),
-                    updated_at: new Date().toISOString()
-                })
-                .eq('id', userId);
-
-            if (error) {
-                console.error('Error promoting user:', error);
-                alert('Error promoting user');
-                return;
-            }
-
-            // Log admin action
-            if (adminId) {
-                await supabase.rpc('log_admin_action', {
-                    p_admin_id: adminId,
-                    p_action_type: 'promote_user',
-                    p_target_type: 'user',
-                    p_target_id: userId,
-                    p_target_name: userData?.name || 'Unknown User',
-                    p_details: {
-                        previous_role: 'user',
-                        new_role: 'admin',
-                        permissions_granted: ['manage_notes', 'manage_users'],
-                        user_email: userData?.email
-                    },
-                    p_reason: 'User promoted to admin by admin'
-                });
-            }
-
-            // Update local state
-            const user = users.find(u => u.id === userId);
-            if (user) {
-                // Add to admins
-                const newAdmin = {
-                    ...user,
-                    role: 'admin',
-                    permissions: ['manage_notes', 'manage_users'],
-                    joinedDate: user.joinedDate
-                };
-                setAdmins(prev => [...prev, newAdmin]);
-
-                // Remove from users
-                setUsers(prev => prev.filter(u => u.id !== userId));
-
-                alert('User has been promoted to admin successfully.');
-
-                // Refresh data to ensure consistency
-                fetchData();
-            }
+            navigate('/admin-login');
         } catch (error) {
-            console.error('Error promoting user:', error);
-            alert('Error promoting user');
-        }
-    };
-
-    const handleDemoteAdmin = async (adminId) => {
-        if (!window.confirm('Are you sure you want to demote this admin to regular user? They will lose administrative privileges.')) {
-            return;
-        }
-
-        try {
-            // Get current admin info
-            const currentAdminEmail = localStorage.getItem('demoAdminEmail') || 'admin@semesterhub.com';
-            const { data: adminData } = await supabase
-                .from('users')
-                .select('id, name')
-                .eq('email', currentAdminEmail)
-                .single();
-
-            const currentAdminId = adminData?.id;
-
-            // Get admin info for logging
-            const { data: targetAdminData } = await supabase
-                .from('users')
-                .select('name, email, role, permissions')
-                .eq('id', adminId)
-                .single();
-
-            // Update user role in Supabase
-            const { error } = await supabase
-                .from('users')
-                .update({
-                    role: 'user',
-                    permissions: JSON.stringify([]),
-                    updated_at: new Date().toISOString()
-                })
-                .eq('id', adminId);
-
-            if (error) {
-                console.error('Error demoting admin:', error);
-                alert('Error demoting admin');
-                return;
-            }
-
-            // Log admin action
-            if (currentAdminId) {
-                await supabase.rpc('log_admin_action', {
-                    p_admin_id: currentAdminId,
-                    p_action_type: 'demote_admin',
-                    p_target_type: 'admin',
-                    p_target_id: adminId,
-                    p_target_name: targetAdminData?.name || 'Unknown Admin',
-                    p_details: {
-                        previous_role: 'admin',
-                        new_role: 'user',
-                        previous_permissions: targetAdminData?.permissions || [],
-                        admin_email: targetAdminData?.email
-                    },
-                    p_reason: 'Admin demoted to user by admin'
-                });
-            }
-
-            // Update local state
-            const admin = admins.find(a => a.id === adminId);
-            if (admin && admin.role !== 'super_admin') {
-                // Add to users
-                const newUser = {
-                    ...admin,
-                    role: 'user',
-                    notesShared: 0,
-                    status: 'active',
-                    permissions: []
-                };
-                setUsers(prev => [...prev, newUser]);
-
-                // Remove from admins
-                setAdmins(prev => prev.filter(a => a.id !== adminId));
-
-                alert('Admin has been demoted to user successfully.');
-
-                // Refresh data to ensure consistency
-                fetchData();
-            } else if (admin && admin.role === 'super_admin') {
-                alert('Cannot demote super admin.');
-            }
-        } catch (error) {
-            console.error('Error demoting admin:', error);
-            alert('Error demoting admin');
-        }
-    };
-
-    const handleRemoveAdmin = (adminId) => {
-        if (!window.confirm('Are you sure you want to remove this admin? This action cannot be undone.')) {
-            return;
-        }
-
-        try {
-            console.log('Demo: Removing admin', adminId);
-            const admin = admins.find(a => a.id === adminId);
-            if (admin && admin.role !== 'super_admin') {
-                setAdmins(prev => prev.filter(a => a.id !== adminId));
-                alert('Admin has been removed successfully.');
-            } else if (admin && admin.role === 'super_admin') {
-                alert('Cannot remove super admin.');
-            }
-        } catch (error) {
-            console.error('Error removing admin:', error);
-            alert('Error removing admin');
-        }
-    };
-
-    // Modal Functions
-    const openBanModal = (user) => {
-        setSelectedUserToBan(user);
-        setBanReason('');
-        setShowBanModal(true);
-    };
-
-    const closeBanModal = () => {
-        setShowBanModal(false);
-        setSelectedUserToBan(null);
-        setBanReason('');
-    };
-
-    const handleBanWithReason = async () => {
-        if (!banReason.trim()) {
-            alert('Please provide a reason for banning this user.');
-            return;
-        }
-
-        try {
-            if (selectedUserToBan) {
-                // Get current admin info
-                const currentAdminEmail = localStorage.getItem('demoAdminEmail') || 'admin@semesterhub.com';
-                const { data: adminData } = await supabase
-                    .from('users')
-                    .select('id, name')
-                    .eq('email', currentAdminEmail)
-                    .single();
-
-                const adminId = adminData?.id;
-
-                // Check if it's a user or admin
-                const isAdmin = admins.find(admin => admin.id === selectedUserToBan.id);
-
-                if (isAdmin) {
-                    if (isAdmin.role === 'super_admin') {
-                        alert('Cannot ban super admin.');
-                        return;
-                    }
-
-                    // Update admin to user with banned status in database
-                    const { error } = await supabase
-                        .from('users')
-                        .update({
-                            role: 'user',
-                            status: 'banned',
-                            banned: true,
-                            ban_reason: banReason,
-                            banned_at: new Date().toISOString(),
-                            banned_by: adminId,
-                            updated_at: new Date().toISOString()
-                        })
-                        .eq('id', selectedUserToBan.id);
-
-                    if (error) {
-                        console.error('Error banning admin:', error);
-                        alert('Error banning admin');
-                        return;
-                    }
-
-                    // Log admin action
-                    if (adminId) {
-                        await supabase.rpc('log_admin_action', {
-                            p_admin_id: adminId,
-                            p_action_type: 'ban_admin',
-                            p_target_type: 'admin',
-                            p_target_id: selectedUserToBan.id,
-                            p_target_name: selectedUserToBan.name,
-                            p_details: {
-                                previous_role: 'admin',
-                                new_role: 'user',
-                                previous_status: 'active',
-                                new_status: 'banned',
-                                admin_email: selectedUserToBan.email
-                            },
-                            p_reason: banReason
-                        });
-                    }
-
-                    // Ban admin (move to users with banned status)
-                    const bannedUser = {
-                        ...isAdmin,
-                        role: 'user',
-                        status: 'banned',
-                        banned: true,
-                        banReason: banReason,
-                        bannedAt: new Date(),
-                        banned_by: adminId,
-                        notesShared: 0
-                    };
-                    setUsers(prev => [...prev, bannedUser]);
-                    setAdmins(prev => prev.filter(a => a.id !== selectedUserToBan.id));
-                } else {
-                    // Ban regular user - use the updated handleBanUser function
-                    await handleBanUser(selectedUserToBan.id, banReason);
-                    closeBanModal();
-                    return;
-                }
-
-                alert(`${selectedUserToBan.name} has been banned successfully.`);
-                closeBanModal();
-
-                // Refresh data to ensure consistency
-                fetchData();
-            }
-        } catch (error) {
-            console.error('Error banning user:', error);
-            alert('Error banning user');
+            console.error('Logout error:', error);
+            // Even if logout fails, clear local state and redirect
+            navigate('/admin-login');
         }
     };
 
@@ -956,7 +659,8 @@ const AdminDashboard = () => {
             email: '',
             password: '',
             role: 'admin',
-            permissions: ['manage_notes', 'manage_users']
+            permissions: ['manage_notes', 'manage_users'],
+            showPassword: false
         });
         setShowNewAdminModal(true);
     };
@@ -968,7 +672,8 @@ const AdminDashboard = () => {
             email: '',
             password: '',
             role: 'admin',
-            permissions: ['manage_notes', 'manage_users']
+            permissions: ['manage_notes', 'manage_users'],
+            showPassword: false
         });
     };
 
@@ -978,30 +683,7 @@ const AdminDashboard = () => {
             return;
         }
 
-        // Check if email already exists in database
-        const { data: existingUser } = await supabase
-            .from('users')
-            .select('id')
-            .eq('email', newAdminData.email)
-            .single();
-
-        if (existingUser) {
-            alert('An account with this email already exists.');
-            return;
-        }
-
         try {
-            // Get current admin info
-            const currentAdminEmail = localStorage.getItem('demoAdminEmail') || 'admin@semesterhub.com';
-            const { data: adminData } = await supabase
-                .from('users')
-                .select('id, name')
-                .eq('email', currentAdminEmail)
-                .single();
-
-            const adminId = adminData?.id;
-
-            // Create new admin account through Supabase Auth
             const { data: authData, error: authError } = await supabase.auth.signUp({
                 email: newAdminData.email,
                 password: newAdminData.password,
@@ -1013,66 +695,21 @@ const AdminDashboard = () => {
                 }
             });
 
-            if (authError) {
-                console.error('Error creating admin auth:', authError);
-                alert('Error creating admin account: ' + authError.message);
-                return;
-            }
+            if (authError) throw authError;
 
-            // Insert admin profile into users table
-            const { error: profileError } = await supabase
-                .from('users')
-                .insert({
-                    id: authData.user.id,
-                    email: newAdminData.email,
-                    name: newAdminData.name,
-                    role: 'admin',
-                    status: 'active',
-                    permissions: JSON.stringify(newAdminData.permissions),
-                    auth_provider: 'email'
-                });
-
-            if (profileError) {
-                console.error('Error creating admin profile:', profileError);
-                alert('Error creating admin profile: ' + profileError.message);
-                return;
-            }
-
-            // Log admin action
-            if (adminId) {
-                await supabase.rpc('log_admin_action', {
-                    p_admin_id: adminId,
-                    p_action_type: 'create_admin',
-                    p_target_type: 'admin',
-                    p_target_id: authData.user.id,
-                    p_target_name: newAdminData.name,
-                    p_details: {
-                        admin_email: newAdminData.email,
-                        permissions_granted: newAdminData.permissions,
-                        created_by_admin: adminData?.name
-                    },
-                    p_reason: 'New admin account created'
-                });
-            }
-
-            // Add to local state
             const newAdmin = {
                 id: authData.user.id,
                 name: newAdminData.name,
                 email: newAdminData.email,
                 role: newAdminData.role,
                 status: 'active',
-                joinedDate: new Date(),
                 created_at: new Date().toISOString(),
-                permissions: newAdminData.permissions,
-                auth_provider: 'email'
+                permissions: newAdminData.permissions
             };
 
             setAdmins(prev => [...prev, newAdmin]);
             alert(`New admin ${newAdminData.name} has been created successfully.`);
             closeNewAdminModal();
-
-            // Refresh data to ensure consistency
             fetchData();
         } catch (error) {
             console.error('Error creating new admin:', error);
@@ -1080,34 +717,19 @@ const AdminDashboard = () => {
         }
     };
 
-    const handlePermissionChange = (permission) => {
+    const handlePermissionChange = (permission, isChecked) => {
         setNewAdminData(prev => ({
             ...prev,
-            permissions: prev.permissions.includes(permission)
-                ? prev.permissions.filter(p => p !== permission)
-                : [...prev.permissions, permission]
+            permissions: isChecked
+                ? [...prev.permissions, permission]
+                : prev.permissions.filter(p => p !== permission)
         }));
-    };
-
-    const formatDate = (date) => {
-        if (!date) return '';
-        if (date.toDate) {
-            return date.toDate().toLocaleDateString();
-        }
-        return new Date(date).toLocaleDateString();
-    };
-
-    const formatFileSize = (bytes) => {
-        if (!bytes) return 'Unknown';
-        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(1024));
-        return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
     };
 
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center">
-                <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600"></div>
+                <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
             </div>
         );
     }
@@ -1118,8 +740,8 @@ const AdminDashboard = () => {
                 {/* Header */}
                 <div className="mb-8 flex justify-between items-center">
                     <div>
-                        <h1 className="text-3xl font-bold text-secondary-900">Admin Dashboard</h1>
-                        <p className="text-secondary-600 mt-2">Manage notes, users, and platform content</p>
+                        <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+                        <p className="text-gray-600 mt-2">Manage platform content, users, and notes</p>
                     </div>
                     <div className="flex items-center space-x-4">
                         <button
@@ -1131,16 +753,16 @@ const AdminDashboard = () => {
                             <span>Refresh</span>
                         </button>
                         {lastRefresh && (
-                            <div className="text-xs text-secondary-500">
+                            <div className="text-xs text-gray-500">
                                 Last updated: {lastRefresh.toLocaleTimeString()}
                             </div>
                         )}
                         {currentAdmin && (
                             <div className="text-right">
-                                <p className="text-sm font-medium text-secondary-900">
+                                <p className="text-sm font-medium text-gray-900">
                                     Welcome, {currentAdmin.name}
                                 </p>
-                                <p className="text-xs text-secondary-600">
+                                <p className="text-xs text-gray-600">
                                     {currentAdmin.email}
                                 </p>
                             </div>
@@ -1159,12 +781,12 @@ const AdminDashboard = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                     <div className="bg-white rounded-lg shadow-sm p-6">
                         <div className="flex items-center">
-                            <div className="p-2 bg-primary-100 rounded-lg">
-                                <BookOpen className="h-6 w-6 text-primary-600" />
+                            <div className="p-2 bg-blue-100 rounded-lg">
+                                <BookOpen className="h-6 w-6 text-blue-600" />
                             </div>
                             <div className="ml-4">
-                                <p className="text-sm font-medium text-secondary-600">Total Notes</p>
-                                <p className="text-2xl font-bold text-secondary-900">{stats.totalNotes}</p>
+                                <h3 className="text-sm font-medium text-gray-500">Total Notes</h3>
+                                <p className="text-2xl font-bold text-gray-900">{stats.totalNotes}</p>
                             </div>
                         </div>
                     </div>
@@ -1172,11 +794,11 @@ const AdminDashboard = () => {
                     <div className="bg-white rounded-lg shadow-sm p-6">
                         <div className="flex items-center">
                             <div className="p-2 bg-yellow-100 rounded-lg">
-                                <AlertTriangle className="h-6 w-6 text-yellow-600" />
+                                <Clock className="h-6 w-6 text-yellow-600" />
                             </div>
                             <div className="ml-4">
-                                <p className="text-sm font-medium text-secondary-600">Pending Review</p>
-                                <p className="text-2xl font-bold text-secondary-900">{stats.pendingReview}</p>
+                                <h3 className="text-sm font-medium text-gray-500">Pending Review</h3>
+                                <p className="text-2xl font-bold text-gray-900">{stats.pendingReview}</p>
                             </div>
                         </div>
                     </div>
@@ -1187,748 +809,763 @@ const AdminDashboard = () => {
                                 <Users className="h-6 w-6 text-green-600" />
                             </div>
                             <div className="ml-4">
-                                <p className="text-sm font-medium text-secondary-600">Total Users</p>
-                                <p className="text-2xl font-bold text-secondary-900">{stats.totalUsers}</p>
+                                <h3 className="text-sm font-medium text-gray-500">Total Users</h3>
+                                <p className="text-2xl font-bold text-gray-900">{stats.totalUsers}</p>
                             </div>
                         </div>
                     </div>
 
                     <div className="bg-white rounded-lg shadow-sm p-6">
                         <div className="flex items-center">
-                            <div className="p-2 bg-blue-100 rounded-lg">
-                                <Download className="h-6 w-6 text-blue-600" />
+                            <div className="p-2 bg-purple-100 rounded-lg">
+                                <Download className="h-6 w-6 text-purple-600" />
                             </div>
                             <div className="ml-4">
-                                <p className="text-sm font-medium text-secondary-600">Total Downloads</p>
-                                <p className="text-2xl font-bold text-secondary-900">{stats.totalDownloads}</p>
+                                <h3 className="text-sm font-medium text-gray-500">Downloads</h3>
+                                <p className="text-2xl font-bold text-gray-900">{stats.totalDownloads}</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {/* Tabs */}
-                <div className="bg-white rounded-lg shadow-sm mb-8">
-                    <div className="border-b border-secondary-200">
-                        <nav className="-mb-px flex">
+                {/* Tab Navigation */}
+                <div className="mb-8">
+                    <div className="border-b border-gray-200">
+                        <nav className="-mb-px flex space-x-8">
                             <button
-                                onClick={() => setActiveTab('overview')}
-                                className={`py-4 px-6 text-sm font-medium border-b-2 ${activeTab === 'overview'
-                                    ? 'border-primary-500 text-primary-600'
-                                    : 'border-transparent text-secondary-500 hover:text-secondary-700 hover:border-secondary-300'
+                                onClick={() => setActiveTab('content')}
+                                className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'content'
+                                    ? 'border-blue-500 text-blue-600'
+                                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                                     }`}
                             >
-                                Overview
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('pending')}
-                                className={`py-4 px-6 text-sm font-medium border-b-2 ${activeTab === 'pending'
-                                    ? 'border-primary-500 text-primary-600'
-                                    : 'border-transparent text-secondary-500 hover:text-secondary-700 hover:border-secondary-300'
-                                    }`}
-                            >
-                                Pending Review ({stats.pendingReview})
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('approved')}
-                                className={`py-4 px-6 text-sm font-medium border-b-2 ${activeTab === 'approved'
-                                    ? 'border-primary-500 text-primary-600'
-                                    : 'border-transparent text-secondary-500 hover:text-secondary-700 hover:border-secondary-300'
-                                    }`}
-                            >
-                                Published Notes
+                                Content Management
                             </button>
                             <button
                                 onClick={() => setActiveTab('users')}
-                                className={`py-4 px-6 text-sm font-medium border-b-2 ${activeTab === 'users'
-                                    ? 'border-primary-500 text-primary-600'
-                                    : 'border-transparent text-secondary-500 hover:text-secondary-700 hover:border-secondary-300'
+                                className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'users'
+                                    ? 'border-blue-500 text-blue-600'
+                                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                                     }`}
                             >
-                                Manage Users
+                                User Management
                             </button>
                             <button
-                                onClick={() => setActiveTab('admins')}
-                                className={`py-4 px-6 text-sm font-medium border-b-2 ${activeTab === 'admins'
-                                    ? 'border-primary-500 text-primary-600'
-                                    : 'border-transparent text-secondary-500 hover:text-secondary-700 hover:border-secondary-300'
+                                onClick={() => setActiveTab('notes')}
+                                className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'notes'
+                                    ? 'border-blue-500 text-blue-600'
+                                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                                     }`}
                             >
-                                Manage Admins
+                                Notes Management
                             </button>
                             <button
-                                onClick={() => setActiveTab('audit')}
-                                className={`py-4 px-6 text-sm font-medium border-b-2 ${activeTab === 'audit'
-                                    ? 'border-primary-500 text-primary-600'
-                                    : 'border-transparent text-secondary-500 hover:text-secondary-700 hover:border-secondary-300'
+                                onClick={() => setActiveTab('activity')}
+                                className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'activity'
+                                    ? 'border-blue-500 text-blue-600'
+                                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                                     }`}
                             >
-                                Audit Log
+                                Activity Log
                             </button>
                         </nav>
                     </div>
+                </div>
 
-                    <div className="p-6">
-                        {/* Pending Notes Tab */}
-                        {activeTab === 'pending' && (
-                            <div>
-                                <h3 className="text-lg font-semibold text-secondary-900 mb-4">
-                                    Notes Pending Review
-                                </h3>
-                                {pendingNotes.length === 0 ? (
-                                    <div className="text-center py-8">
-                                        <CheckCircle size={48} className="mx-auto text-green-500 mb-4" />
-                                        <p className="text-secondary-600">No notes pending review</p>
+                {/* Tab Content */}
+                <div className="bg-white rounded-lg shadow-sm">
+                    {/* Content Management Tab */}
+                    {activeTab === 'content' && (
+                        <div className="p-6">
+                            <h2 className="text-xl font-semibold text-gray-900 mb-6">Content Management</h2>
+
+                            {/* Content Subtabs */}
+                            <div className="mb-6">
+                                <div className="border-b border-gray-200">
+                                    <nav className="-mb-px flex space-x-8">
+                                        <button
+                                            onClick={() => setActiveContentTab('departments')}
+                                            className={`py-2 px-1 border-b-2 font-medium text-sm ${activeContentTab === 'departments'
+                                                ? 'border-blue-500 text-blue-600'
+                                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                                }`}
+                                        >
+                                            Departments
+                                        </button>
+                                        <button
+                                            onClick={() => setActiveContentTab('subjects')}
+                                            className={`py-2 px-1 border-b-2 font-medium text-sm ${activeContentTab === 'subjects'
+                                                ? 'border-blue-500 text-blue-600'
+                                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                                }`}
+                                        >
+                                            Subjects
+                                        </button>
+                                        <button
+                                            onClick={() => setActiveContentTab('semesters')}
+                                            className={`py-2 px-1 border-b-2 font-medium text-sm ${activeContentTab === 'semesters'
+                                                ? 'border-blue-500 text-blue-600'
+                                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                                }`}
+                                        >
+                                            Semesters
+                                        </button>
+                                    </nav>
+                                </div>
+                            </div>
+
+                            {/* Departments Management */}
+                            {activeContentTab === 'departments' && (
+                                <div>
+                                    <div className="flex justify-between items-center mb-4">
+                                        <h3 className="text-lg font-medium text-gray-900">Departments</h3>
+                                        <button
+                                            onClick={() => setShowAddDepartmentModal(true)}
+                                            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                                        >
+                                            <Plus size={16} />
+                                            <span>Add Department</span>
+                                        </button>
                                     </div>
-                                ) : (
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        {departments.map(dept => (
+                                            <div key={dept.id} className="border border-gray-200 rounded-lg p-4">
+                                                <div className="flex justify-between items-start">
+                                                    <div>
+                                                        <h4 className="font-medium text-gray-900">{dept.name}</h4>
+                                                        <p className="text-sm text-gray-500">Code: {dept.code}</p>
+                                                        {dept.description && (
+                                                            <p className="text-sm text-gray-600 mt-1">{dept.description}</p>
+                                                        )}
+                                                    </div>
+                                                    <button
+                                                        onClick={() => handleDeleteDepartment(dept.id)}
+                                                        className="text-red-600 hover:text-red-800"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Subjects Management */}
+                            {activeContentTab === 'subjects' && (
+                                <div>
+                                    <div className="flex justify-between items-center mb-4">
+                                        <h3 className="text-lg font-medium text-gray-900">Subjects</h3>
+                                        <button
+                                            onClick={() => setShowAddSubjectModal(true)}
+                                            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                                        >
+                                            <Plus size={16} />
+                                            <span>Add Subject</span>
+                                        </button>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        {subjects.map(subject => (
+                                            <div key={subject.id} className="border border-gray-200 rounded-lg p-4">
+                                                <div className="flex justify-between items-start">
+                                                    <div>
+                                                        <h4 className="font-medium text-gray-900">{subject.name}</h4>
+                                                        <p className="text-sm text-gray-500">Code: {subject.code}</p>
+                                                        {subject.description && (
+                                                            <p className="text-sm text-gray-600 mt-1">{subject.description}</p>
+                                                        )}
+                                                        {subject.department_name && (
+                                                            <p className="text-xs text-blue-600 mt-1">Dept: {subject.department_name}</p>
+                                                        )}
+                                                    </div>
+                                                    <button
+                                                        onClick={() => handleDeleteSubject(subject.id)}
+                                                        className="text-red-600 hover:text-red-800"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Semesters Management */}
+                            {activeContentTab === 'semesters' && (
+                                <div>
+                                    <div className="flex justify-between items-center mb-4">
+                                        <h3 className="text-lg font-medium text-gray-900">Semesters</h3>
+                                        <button
+                                            onClick={() => setShowAddSemesterModal(true)}
+                                            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                                        >
+                                            <Plus size={16} />
+                                            <span>Add Semester</span>
+                                        </button>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                        {semesters.map(semester => (
+                                            <div key={semester.id} className="border border-gray-200 rounded-lg p-4">
+                                                <div className="flex justify-between items-start">
+                                                    <div>
+                                                        <h4 className="font-medium text-gray-900">{semester.name}</h4>
+                                                        <p className="text-sm text-gray-500">Semester {semester.number}</p>
+                                                        <p className={`text-xs mt-1 ${semester.is_active ? 'text-green-600' : 'text-red-600'
+                                                            }`}>
+                                                            {semester.is_active ? 'Active' : 'Inactive'}
+                                                        </p>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => handleDeleteSemester(semester.id)}
+                                                        className="text-red-600 hover:text-red-800"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}                    {/* User Management Tab */}
+                    {activeTab === 'users' && (
+                        <div className="p-6">
+                            <div className="flex justify-between items-center mb-6">
+                                <h2 className="text-xl font-semibold text-gray-900">User Management</h2>
+                                <button
+                                    onClick={openNewAdminModal}
+                                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                                >
+                                    <UserPlus size={16} />
+                                    <span>Add Admin</span>
+                                </button>
+                            </div>
+
+                            <div className="overflow-x-auto">
+                                <table className="min-w-full divide-y divide-gray-200">
+                                    <thead className="bg-gray-50">
+                                        <tr>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                User
+                                            </th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Role
+                                            </th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Status
+                                            </th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Actions
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="bg-white divide-y divide-gray-200">
+                                        {[...users, ...admins].map(user => (
+                                            <tr key={user.id}>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div>
+                                                        <div className="text-sm font-medium text-gray-900">{user.name}</div>
+                                                        <div className="text-sm text-gray-500">{user.email}</div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${user.role === 'admin'
+                                                        ? 'bg-red-100 text-red-800'
+                                                        : 'bg-green-100 text-green-800'
+                                                        }`}>
+                                                        {user.role}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${user.status === 'active'
+                                                        ? 'bg-green-100 text-green-800'
+                                                        : 'bg-red-100 text-red-800'
+                                                        }`}>
+                                                        {user.status || 'active'}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                    {user.role !== 'admin' && (
+                                                        <div className="flex space-x-2">
+                                                            {user.status !== 'banned' ? (
+                                                                <button
+                                                                    onClick={() => handleBanUser(user.id)}
+                                                                    className="text-red-600 hover:text-red-900"
+                                                                >
+                                                                    Ban
+                                                                </button>
+                                                            ) : (
+                                                                <button
+                                                                    onClick={() => handleUnbanUser(user.id)}
+                                                                    className="text-green-600 hover:text-green-900"
+                                                                >
+                                                                    Unban
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Notes Management Tab */}
+                    {activeTab === 'notes' && (
+                        <div className="p-6">
+                            <h2 className="text-xl font-semibold text-gray-900 mb-6">Notes Management</h2>
+
+                            <div className="space-y-6">
+                                {/* Pending Notes */}
+                                <div>
+                                    <h3 className="text-lg font-medium text-gray-900 mb-4">Pending Approval ({pendingNotes.length})</h3>
                                     <div className="space-y-4">
                                         {pendingNotes.map(note => (
-                                            <div key={note.id} className="border border-secondary-200 rounded-lg p-4">
+                                            <div key={note.id} className="border border-gray-200 rounded-lg p-4">
                                                 <div className="flex justify-between items-start">
-                                                    <div className="flex-1">
-                                                        <h4 className="text-lg font-semibold text-secondary-900 mb-2">
-                                                            {note.title}
-                                                        </h4>
-                                                        <div className="flex items-center space-x-4 text-sm text-secondary-600 mb-2">
-                                                            <span className="bg-primary-100 text-primary-700 px-2 py-1 rounded-full">
-                                                                {note.subject}
-                                                            </span>
-                                                            <span className="bg-secondary-100 text-secondary-700 px-2 py-1 rounded-full">
-                                                                {note.semester}
-                                                            </span>
-                                                            <div className="flex items-center space-x-1">
-                                                                <Calendar size={16} />
-                                                                <span>{formatDate(note.createdAt)}</span>
-                                                            </div>
-                                                        </div>
-                                                        <p className="text-secondary-600 mb-2">{note.description}</p>
-                                                        <div className="text-sm text-secondary-500">
-                                                            <p>Author: {note.author}</p>
-                                                            <p>File: {note.fileName} ({formatFileSize(note.fileSize)})</p>
+                                                    <div>
+                                                        <h4 className="font-medium text-gray-900">{note.title}</h4>
+                                                        <p className="text-sm text-gray-500 mt-1">{note.description}</p>
+                                                        <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500">
+                                                            <span>Subject: {note.subject}</span>
+                                                            <span>Semester: {note.semester}</span>
+                                                            <span>Uploaded: {new Date(note.created_at).toLocaleDateString()}</span>
                                                         </div>
                                                     </div>
                                                     <div className="flex space-x-2 ml-4">
                                                         <button
                                                             onClick={() => handleApproveNote(note.id)}
-                                                            className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg flex items-center space-x-1 transition-colors"
+                                                            className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 transition-colors"
                                                         >
-                                                            <CheckCircle size={16} />
-                                                            <span>Approve</span>
+                                                            Approve
                                                         </button>
                                                         <button
                                                             onClick={() => handleRejectNote(note.id)}
-                                                            className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg flex items-center space-x-1 transition-colors"
+                                                            className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700 transition-colors"
                                                         >
-                                                            <XCircle size={16} />
-                                                            <span>Reject</span>
+                                                            Reject
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteNote(note.id)}
+                                                            className="bg-gray-600 text-white px-3 py-1 rounded text-sm hover:bg-gray-700 transition-colors"
+                                                        >
+                                                            Delete
                                                         </button>
                                                     </div>
                                                 </div>
                                             </div>
                                         ))}
                                     </div>
-                                )}
-                            </div>
-                        )}
-
-                        {/* Approved Notes Tab */}
-                        {activeTab === 'approved' && (
-                            <div>
-                                <h3 className="text-lg font-semibold text-secondary-900 mb-4">
-                                    Published Notes
-                                </h3>
-                                <div className="space-y-4">
-                                    {approvedNotes.slice(0, 10).map(note => (
-                                        <div key={note.id} className="border border-secondary-200 rounded-lg p-4">
-                                            <div className="flex justify-between items-start">
-                                                <div className="flex-1">
-                                                    <h4 className="text-lg font-semibold text-secondary-900 mb-2">
-                                                        {note.title}
-                                                    </h4>
-                                                    <div className="flex items-center space-x-4 text-sm text-secondary-600 mb-2">
-                                                        <span className="bg-primary-100 text-primary-700 px-2 py-1 rounded-full">
-                                                            {note.subject}
-                                                        </span>
-                                                        <span className="bg-secondary-100 text-secondary-700 px-2 py-1 rounded-full">
-                                                            {note.semester}
-                                                        </span>
-                                                        <div className="flex items-center space-x-1">
-                                                            <Download size={16} />
-                                                            <span>{note.downloadCount || 0} downloads</span>
-                                                        </div>
-                                                    </div>
-                                                    <p className="text-sm text-secondary-500">
-                                                        Author: {note.author} • Published: {formatDate(note.createdAt)}
-                                                    </p>
-                                                </div>
-                                                <button
-                                                    onClick={() => handleDeleteNote(note.id)}
-                                                    className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg flex items-center space-x-1 transition-colors"
-                                                >
-                                                    <Trash2 size={16} />
-                                                    <span>Delete</span>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Overview Tab */}
-                        {activeTab === 'overview' && (
-                            <div>
-                                <h3 className="text-lg font-semibold text-secondary-900 mb-4">
-                                    Platform Overview
-                                </h3>
-                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                    <div>
-                                        <h4 className="font-medium text-secondary-900 mb-3">Recent Activity</h4>
-                                        <div className="space-y-3">
-                                            <div className="flex items-center space-x-3 text-sm">
-                                                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                                <span>{pendingNotes.length} notes pending review</span>
-                                            </div>
-                                            <div className="flex items-center space-x-3 text-sm">
-                                                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                                                <span>{stats.totalDownloads} total downloads</span>
-                                            </div>
-                                            <div className="flex items-center space-x-3 text-sm">
-                                                <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                                                <span>{users.length} registered users</span>
-                                            </div>
-                                            <div className="flex items-center space-x-3 text-sm">
-                                                <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                                                <span>
-                                                    {users.filter(u => u.auth_provider === 'google').length} Google users, {' '}
-                                                    {users.filter(u => u.auth_provider === 'email' || !u.auth_provider).length} Email users
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        {/* Latest Users Section */}
-                                        <h4 className="font-medium text-secondary-900 mb-3 mt-6">Latest Users</h4>
-                                        <div className="space-y-2">
-                                            {users.slice(0, 5).map(user => (
-                                                <div key={user.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                                    <div>
-                                                        <p className="text-sm font-medium text-secondary-900">{user.name}</p>
-                                                        <p className="text-xs text-secondary-600">{user.email}</p>
-                                                    </div>
-                                                    <div className="text-right">
-                                                        <p className="text-xs text-secondary-500">
-                                                            {formatDate(user.joinedDate)}
-                                                        </p>
-                                                        <span className={`inline-block px-2 py-1 rounded-full text-xs ${user.status === 'active'
-                                                            ? 'bg-green-100 text-green-700'
-                                                            : 'bg-red-100 text-red-700'
-                                                            }`}>
-                                                            {user.status}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                            {users.length === 0 && (
-                                                <p className="text-sm text-secondary-500 italic">No users registered yet</p>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <h4 className="font-medium text-secondary-900 mb-3">Quick Actions</h4>
-                                        <div className="space-y-2">
-                                            <button
-                                                onClick={() => setActiveTab('notes')}
-                                                className="w-full text-left px-3 py-2 text-sm bg-primary-50 text-primary-700 rounded-lg hover:bg-primary-100 transition-colors"
-                                            >
-                                                Review pending notes ({pendingNotes.length})
-                                            </button>
-                                            <button
-                                                onClick={() => setActiveTab('users')}
-                                                className="w-full text-left px-3 py-2 text-sm bg-secondary-50 text-secondary-700 rounded-lg hover:bg-secondary-100 transition-colors"
-                                            >
-                                                Manage users ({users.length})
-                                            </button>
-                                            <button
-                                                onClick={fetchData}
-                                                className="w-full text-left px-3 py-2 text-sm bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors"
-                                            >
-                                                Refresh dashboard data
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Users Management Tab */}
-                        {activeTab === 'users' && (
-                            <div>
-                                <div className="flex justify-between items-center mb-4">
-                                    <h3 className="text-lg font-semibold text-secondary-900">
-                                        User Management
-                                    </h3>
-                                    <button
-                                        onClick={openBanModal}
-                                        className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
-                                    >
-                                        <Ban size={16} />
-                                        <span>Ban Member</span>
-                                    </button>
-                                </div>
-                                <div className="space-y-4">
-                                    {users.map(user => (
-                                        <div key={user.id} className="border border-secondary-200 rounded-lg p-4">
-                                            <div className="flex justify-between items-start">
-                                                <div className="flex-1">
-                                                    <h4 className="text-lg font-semibold text-secondary-900 mb-2">
-                                                        {user.name}
-                                                    </h4>
-                                                    <div className="flex items-center space-x-4 text-sm text-secondary-600 mb-2">
-                                                        <span>{user.email}</span>
-                                                        <span className={`px-2 py-1 rounded-full text-xs ${user.status === 'active'
-                                                            ? 'bg-green-100 text-green-700'
-                                                            : user.status === 'banned'
-                                                                ? 'bg-red-100 text-red-700'
-                                                                : 'bg-gray-100 text-gray-700'
-                                                            }`}>
-                                                            {user.status}
-                                                        </span>
-                                                        <div className="flex items-center space-x-1">
-                                                            <Calendar size={16} />
-                                                            <span>Joined: {formatDate(user.joinedDate)}</span>
-                                                        </div>
-                                                        {user.lastActive && (
-                                                            <div className="flex items-center space-x-1">
-                                                                <span>Last Active: {formatDate(user.lastActive)}</span>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                    <p className="text-sm text-secondary-500">
-                                                        Notes Shared: {user.notesShared} • Role: {user.role}
-                                                        {user.totalDownloads > 0 && ` • Downloads: ${user.totalDownloads}`}
-                                                        {user.auth_provider && (
-                                                            <span className="ml-2">
-                                                                • Auth:
-                                                                <span className={`ml-1 px-2 py-1 rounded-full text-xs ${user.auth_provider === 'google'
-                                                                    ? 'bg-blue-100 text-blue-700'
-                                                                    : 'bg-gray-100 text-gray-700'
-                                                                    }`}>
-                                                                    {user.auth_provider === 'google' ? '🌐 Google' : '📧 Email'}
-                                                                </span>
-                                                            </span>
-                                                        )}
-                                                    </p>
-                                                </div>
-                                                <div className="flex space-x-2 ml-4">
-                                                    {user.status === 'active' ? (
-                                                        <>
-                                                            <button
-                                                                onClick={() => handleBanUser(user.id)}
-                                                                className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg flex items-center space-x-1 transition-colors"
-                                                            >
-                                                                <Ban size={16} />
-                                                                <span>Ban</span>
-                                                            </button>
-                                                            <button
-                                                                onClick={() => handlePromoteToAdmin(user.id)}
-                                                                className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg flex items-center space-x-1 transition-colors"
-                                                            >
-                                                                <Shield size={16} />
-                                                                <span>Make Admin</span>
-                                                            </button>
-                                                        </>
-                                                    ) : (
-                                                        <button
-                                                            onClick={() => handleUnbanUser(user.id)}
-                                                            className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg flex items-center space-x-1 transition-colors"
-                                                        >
-                                                            <CheckCircle size={16} />
-                                                            <span>Unban</span>
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Admins Management Tab */}
-                        {activeTab === 'admins' && (
-                            <div>
-                                <div className="flex justify-between items-center mb-4">
-                                    <h3 className="text-lg font-semibold text-secondary-900">
-                                        Admin Management
-                                    </h3>
-                                    <button
-                                        onClick={openNewAdminModal}
-                                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
-                                    >
-                                        <UserPlus size={16} />
-                                        <span>New Admin</span>
-                                    </button>
-                                </div>
-                                <div className="space-y-4">
-                                    {admins.map(admin => (
-                                        <div key={admin.id} className="border border-secondary-200 rounded-lg p-4">
-                                            <div className="flex justify-between items-start">
-                                                <div className="flex-1">
-                                                    <h4 className="text-lg font-semibold text-secondary-900 mb-2">
-                                                        {admin.name}
-                                                        {admin.role === 'super_admin' && (
-                                                            <span className="ml-2 px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full">
-                                                                Super Admin
-                                                            </span>
-                                                        )}
-                                                    </h4>
-                                                    <div className="flex items-center space-x-4 text-sm text-secondary-600 mb-2">
-                                                        <span>{admin.email}</span>
-                                                        <span className={`px-2 py-1 rounded-full text-xs ${admin.status === 'active'
-                                                            ? 'bg-green-100 text-green-700'
-                                                            : 'bg-red-100 text-red-700'
-                                                            }`}>
-                                                            {admin.status}
-                                                        </span>
-                                                        <div className="flex items-center space-x-1">
-                                                            <Calendar size={16} />
-                                                            <span>Joined: {formatDate(admin.joinedDate)}</span>
-                                                        </div>
-                                                    </div>
-                                                    <p className="text-sm text-secondary-500">
-                                                        Role: {admin.role} • Permissions: {admin.permissions.join(', ')}
-                                                    </p>
-                                                </div>
-                                                {admin.role !== 'super_admin' && (
-                                                    <div className="flex space-x-2 ml-4">
-                                                        <button
-                                                            onClick={() => handleDemoteAdmin(admin.id)}
-                                                            className="bg-orange-600 hover:bg-orange-700 text-white px-3 py-2 rounded-lg flex items-center space-x-1 transition-colors"
-                                                        >
-                                                            <ShieldOff size={16} />
-                                                            <span>Demote</span>
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleRemoveAdmin(admin.id)}
-                                                            className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg flex items-center space-x-1 transition-colors"
-                                                        >
-                                                            <Trash2 size={16} />
-                                                            <span>Remove</span>
-                                                        </button>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Audit Log Tab */}
-                        {activeTab === 'audit' && (
-                            <div>
-                                <h3 className="text-lg font-semibold text-secondary-900 mb-4">
-                                    Admin Activity Audit Log
-                                </h3>
-                                {adminActions.length === 0 ? (
-                                    <div className="text-center py-8">
-                                        <AlertTriangle size={48} className="mx-auto text-yellow-500 mb-4" />
-                                        <p className="text-secondary-600">No admin actions recorded</p>
-                                    </div>
-                                ) : (
-                                    <div className="space-y-4">
-                                        {adminActions.map(action => (
-                                            <div key={action.id} className="border border-secondary-200 rounded-lg p-4">
-                                                <div className="flex justify-between items-start">
-                                                    <div className="flex-1">
-                                                        <div className="flex items-center space-x-2 mb-2">
-                                                            <span className={`px-2 py-1 text-xs rounded-full ${action.action_type.includes('ban') ? 'bg-red-100 text-red-700' :
-                                                                    action.action_type.includes('approve') ? 'bg-green-100 text-green-700' :
-                                                                        action.action_type.includes('reject') || action.action_type.includes('delete') ? 'bg-red-100 text-red-700' :
-                                                                            action.action_type.includes('promote') ? 'bg-blue-100 text-blue-700' :
-                                                                                action.action_type.includes('demote') ? 'bg-orange-100 text-orange-700' :
-                                                                                    'bg-gray-100 text-gray-700'
-                                                                }`}>
-                                                                {action.action_type.replace('_', ' ').toUpperCase()}
-                                                            </span>
-                                                            <span className="text-sm text-secondary-500">
-                                                                {formatDate(action.created_at)}
-                                                            </span>
-                                                        </div>
-                                                        <h4 className="text-lg font-semibold text-secondary-900 mb-1">
-                                                            {action.admin_name || 'Unknown Admin'}
-                                                        </h4>
-                                                        <p className="text-secondary-600 mb-1">
-                                                            {action.admin_email}
-                                                        </p>
-                                                        <p className="text-secondary-700 mb-2">
-                                                            <strong>Target:</strong> {action.target_name || 'Unknown'} ({action.target_type})
-                                                        </p>
-                                                        {action.reason && (
-                                                            <p className="text-secondary-700 mb-2">
-                                                                <strong>Reason:</strong> {action.reason}
-                                                            </p>
-                                                        )}
-                                                        {action.details && (
-                                                            <details className="text-sm text-secondary-600">
-                                                                <summary className="cursor-pointer hover:text-secondary-800">
-                                                                    View Details
-                                                                </summary>
-                                                                <pre className="mt-2 p-2 bg-gray-50 rounded text-xs overflow-x-auto">
-                                                                    {JSON.stringify(action.details, null, 2)}
-                                                                </pre>
-                                                            </details>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </div>
-
-            {/* Ban Member Modal */}
-            {showBanModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
-                    <div className="bg-white rounded-lg p-4 sm:p-6 w-full max-w-xs sm:max-w-lg md:max-w-2xl lg:max-w-4xl mx-2 sm:mx-4 max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
-                        <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-lg sm:text-xl font-semibold text-gray-900">Ban Member</h3>
-                            <button
-                                onClick={closeBanModal}
-                                className="text-gray-400 hover:text-gray-600 transition-colors p-1"
-                                aria-label="Close ban modal"
-                            >
-                                <X size={20} className="sm:w-6 sm:h-6" />
-                            </button>
-                        </div>
-
-                        <div className="mb-6">
-                            <h4 className="text-lg font-medium text-gray-800 mb-4">Select User/Admin to Ban:</h4>
-                            <div className="space-y-3 max-h-60 overflow-y-auto">
-                                {/* Users List */}
-                                <div className="mb-4">
-                                    <h5 className="text-md font-medium text-gray-700 mb-2">Users:</h5>
-                                    {users.filter(user => user.status === 'active').map(user => (
-                                        <div key={user.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
-                                            <div className="flex-1">
-                                                <div className="font-medium text-gray-900">{user.name}</div>
-                                                <div className="text-sm text-gray-500">{user.email}</div>
-                                                <div className="text-xs text-gray-400">Role: {user.role} • Joined: {formatDate(user.joinedDate)}</div>
-                                            </div>
-                                            <button
-                                                onClick={() => setSelectedUserToBan(user)}
-                                                className={`px-3 py-1 rounded text-sm transition-colors ${selectedUserToBan?.id === user.id
-                                                    ? 'bg-red-600 text-white'
-                                                    : 'bg-gray-200 text-gray-700 hover:bg-red-100'
-                                                    }`}
-                                            >
-                                                {selectedUserToBan?.id === user.id ? 'Selected' : 'Select'}
-                                            </button>
-                                        </div>
-                                    ))}
                                 </div>
 
-                                {/* Admins List */}
+                                {/* Approved Notes */}
                                 <div>
-                                    <h5 className="text-md font-medium text-gray-700 mb-2">Admins:</h5>
-                                    {admins.filter(admin => admin.status === 'active' && admin.role !== 'super_admin').map(admin => (
-                                        <div key={admin.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
-                                            <div className="flex-1">
-                                                <div className="font-medium text-gray-900">
-                                                    {admin.name}
-                                                    <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
-                                                        Admin
-                                                    </span>
+                                    <h3 className="text-lg font-medium text-gray-900 mb-4">Approved Notes ({approvedNotes.length})</h3>
+                                    <div className="space-y-4">
+                                        {approvedNotes.slice(0, 10).map(note => (
+                                            <div key={note.id} className="border border-gray-200 rounded-lg p-4">
+                                                <div className="flex justify-between items-start">
+                                                    <div>
+                                                        <h4 className="font-medium text-gray-900">{note.title}</h4>
+                                                        <p className="text-sm text-gray-500 mt-1">{note.description}</p>
+                                                        <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500">
+                                                            <span>Subject: {note.subject}</span>
+                                                            <span>Semester: {note.semester}</span>
+                                                            <span>Downloads: {note.download_count || 0}</span>
+                                                            <span>Approved: {new Date(note.approved_at || note.created_at).toLocaleDateString()}</span>
+                                                        </div>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => handleDeleteNote(note.id)}
+                                                        className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700 transition-colors"
+                                                    >
+                                                        Delete
+                                                    </button>
                                                 </div>
-                                                <div className="text-sm text-gray-500">{admin.email}</div>
-                                                <div className="text-xs text-gray-400">Permissions: {admin.permissions.join(', ')}</div>
                                             </div>
-                                            <button
-                                                onClick={() => setSelectedUserToBan(admin)}
-                                                className={`px-3 py-1 rounded text-sm transition-colors ${selectedUserToBan?.id === admin.id
-                                                    ? 'bg-red-600 text-white'
-                                                    : 'bg-gray-200 text-gray-700 hover:bg-red-100'
-                                                    }`}
-                                            >
-                                                {selectedUserToBan?.id === admin.id ? 'Selected' : 'Select'}
-                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Activity Log Tab */}
+                    {activeTab === 'activity' && (
+                        <div className="p-6">
+                            <h2 className="text-xl font-semibold text-gray-900 mb-6">Activity Log</h2>
+
+                            <div className="space-y-4">
+                                {activityLog.map(activity => (
+                                    <div key={activity.id} className="border border-gray-200 rounded-lg p-4">
+                                        <div className="flex justify-between items-start">
+                                            <div>
+                                                <h4 className="font-medium text-gray-900 capitalize">
+                                                    {activity.action?.replace('_', ' ')}
+                                                </h4>
+                                                <p className="text-sm text-gray-500 mt-1">{activity.details}</p>
+                                                <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500">
+                                                    <span>Target: {activity.target_type}</span>
+                                                    <span>Time: {new Date(activity.created_at).toLocaleString()}</span>
+                                                </div>
+                                            </div>
                                         </div>
-                                    ))}
-                                </div>
+                                    </div>
+                                ))}
                             </div>
                         </div>
-
-                        {selectedUserToBan && (
-                            <div className="mb-6">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Reason for banning {selectedUserToBan.name}:
-                                </label>
-                                <textarea
-                                    value={banReason}
-                                    onChange={(e) => setBanReason(e.target.value)}
-                                    className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    rows="4"
-                                    placeholder="Please provide a detailed reason for banning this user..."
-                                />
-                            </div>
-                        )}
-
-                        <div className="flex justify-end space-x-3">
-                            <button
-                                onClick={closeBanModal}
-                                className="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleBanWithReason}
-                                disabled={!selectedUserToBan || !banReason.trim()}
-                                className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
-                            >
-                                Ban User
-                            </button>
-                        </div>
-                    </div>
+                    )}
                 </div>
-            )}
 
-            {/* New Admin Modal */}
-            {showNewAdminModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
-                    <div className="bg-white rounded-lg p-4 sm:p-6 w-full max-w-xs sm:max-w-lg md:max-w-xl lg:max-w-2xl mx-2 sm:mx-4 max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
-                        <div className="flex justify-between items-center mb-4 sm:mb-6">
-                            <h3 className="text-lg sm:text-xl font-semibold text-gray-900">Create New Admin</h3>
-                            <button
-                                onClick={closeNewAdminModal}
-                                className="text-gray-400 hover:text-gray-600 transition-colors p-1"
-                                aria-label="Close new admin modal"
-                            >
-                                <X size={20} className="sm:w-6 sm:h-6" />
-                            </button>
-                        </div>
-
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Admin Name *
-                                </label>
-                                <input
-                                    type="text"
-                                    value={newAdminData.name}
-                                    onChange={(e) => setNewAdminData({ ...newAdminData, name: e.target.value })}
-                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    placeholder="Enter admin's full name"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Email Address *
-                                </label>
-                                <input
-                                    type="email"
-                                    value={newAdminData.email}
-                                    onChange={(e) => setNewAdminData({ ...newAdminData, email: e.target.value })}
-                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    placeholder="Enter admin's email address"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Password *
-                                </label>
-                                <div className="relative">
-                                    <input
-                                        type={newAdminData.showPassword ? 'text' : 'password'}
-                                        value={newAdminData.password}
-                                        onChange={(e) => setNewAdminData({ ...newAdminData, password: e.target.value })}
-                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-10"
-                                        placeholder="Create a secure password"
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setNewAdminData({ ...newAdminData, showPassword: !newAdminData.showPassword })}
-                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                                    >
-                                        {newAdminData.showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Admin Role *
-                                </label>
-                                <select
-                                    value={newAdminData.role}
-                                    onChange={(e) => setNewAdminData({ ...newAdminData, role: e.target.value })}
-                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                {/* Add Department Modal */}
+                {showAddDepartmentModal && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white rounded-lg p-6 w-full max-w-md">
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-lg font-semibold text-gray-900">Add Department</h3>
+                                <button
+                                    onClick={() => setShowAddDepartmentModal(false)}
+                                    className="text-gray-400 hover:text-gray-600"
                                 >
-                                    <option value="">Select admin role</option>
-                                    <option value="admin">Admin</option>
-                                    <option value="moderator">Moderator</option>
-                                    <option value="content_manager">Content Manager</option>
-                                </select>
+                                    <X size={20} />
+                                </button>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Permissions *
-                                </label>
-                                <div className="space-y-2">
-                                    {['manage_users', 'manage_notes', 'manage_content', 'view_analytics', 'system_settings'].map(permission => (
-                                        <label key={permission} className="flex items-center">
-                                            <input
-                                                type="checkbox"
-                                                checked={newAdminData.permissions.includes(permission)}
-                                                onChange={(e) => handlePermissionChange(permission, e.target.checked)}
-                                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                            />
-                                            <span className="ml-2 text-sm text-gray-700 capitalize">
-                                                {permission.replace('_', ' ')}
-                                            </span>
-                                        </label>
-                                    ))}
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Department Name *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={newDepartment.name}
+                                        onChange={(e) => setNewDepartment({ ...newDepartment, name: e.target.value })}
+                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        placeholder="Enter department name"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Department Code *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={newDepartment.code}
+                                        onChange={(e) => setNewDepartment({ ...newDepartment, code: e.target.value })}
+                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        placeholder="Enter department code"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Description
+                                    </label>
+                                    <textarea
+                                        value={newDepartment.description}
+                                        onChange={(e) => setNewDepartment({ ...newDepartment, description: e.target.value })}
+                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        placeholder="Enter department description"
+                                        rows={3}
+                                    />
                                 </div>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Additional Notes (Optional)
-                                </label>
-                                <textarea
-                                    value={newAdminData.notes}
-                                    onChange={(e) => setNewAdminData({ ...newAdminData, notes: e.target.value })}
-                                    className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    rows="3"
-                                    placeholder="Any additional notes about this admin..."
-                                />
+                            <div className="flex justify-end space-x-3 mt-6">
+                                <button
+                                    onClick={() => setShowAddDepartmentModal(false)}
+                                    className="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleAddDepartment}
+                                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                                >
+                                    Add Department
+                                </button>
                             </div>
                         </div>
+                    </div>
+                )}
 
-                        <div className="flex justify-end space-x-3 mt-6">
-                            <button
-                                onClick={closeNewAdminModal}
-                                className="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleCreateNewAdmin}
-                                disabled={!newAdminData.name || !newAdminData.email || !newAdminData.password || !newAdminData.role || newAdminData.permissions.length === 0}
-                                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
-                            >
-                                Create Admin
-                            </button>
+                {/* Add Subject Modal */}
+                {showAddSubjectModal && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white rounded-lg p-6 w-full max-w-md">
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-lg font-semibold text-gray-900">Add Subject</h3>
+                                <button
+                                    onClick={() => setShowAddSubjectModal(false)}
+                                    className="text-gray-400 hover:text-gray-600"
+                                >
+                                    <X size={20} />
+                                </button>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Subject Name *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={newSubject.name}
+                                        onChange={(e) => setNewSubject({ ...newSubject, name: e.target.value })}
+                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        placeholder="Enter subject name"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Subject Code *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={newSubject.code}
+                                        onChange={(e) => setNewSubject({ ...newSubject, code: e.target.value })}
+                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        placeholder="Enter subject code"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Department
+                                    </label>
+                                    <select
+                                        value={newSubject.department_id}
+                                        onChange={(e) => setNewSubject({ ...newSubject, department_id: e.target.value })}
+                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    >
+                                        <option value="">Select Department</option>
+                                        {departments.map(dept => (
+                                            <option key={dept.id} value={dept.id}>{dept.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Description
+                                    </label>
+                                    <textarea
+                                        value={newSubject.description}
+                                        onChange={(e) => setNewSubject({ ...newSubject, description: e.target.value })}
+                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        placeholder="Enter subject description"
+                                        rows={3}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="flex justify-end space-x-3 mt-6">
+                                <button
+                                    onClick={() => setShowAddSubjectModal(false)}
+                                    className="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleAddSubject}
+                                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                                >
+                                    Add Subject
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )}
+
+                {/* Add Semester Modal */}
+                {showAddSemesterModal && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white rounded-lg p-6 w-full max-w-md">
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-lg font-semibold text-gray-900">Add Semester</h3>
+                                <button
+                                    onClick={() => setShowAddSemesterModal(false)}
+                                    className="text-gray-400 hover:text-gray-600"
+                                >
+                                    <X size={20} />
+                                </button>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Semester Number *
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        max="10"
+                                        value={newSemester.number}
+                                        onChange={(e) => setNewSemester({ ...newSemester, number: parseInt(e.target.value) })}
+                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        placeholder="Enter semester number"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Semester Name *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={newSemester.name}
+                                        onChange={(e) => setNewSemester({ ...newSemester, name: e.target.value })}
+                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        placeholder="Enter semester name"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="flex items-center">
+                                        <input
+                                            type="checkbox"
+                                            checked={newSemester.is_active}
+                                            onChange={(e) => setNewSemester({ ...newSemester, is_active: e.target.checked })}
+                                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                        />
+                                        <span className="ml-2 text-sm text-gray-700">Active Semester</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div className="flex justify-end space-x-3 mt-6">
+                                <button
+                                    onClick={() => setShowAddSemesterModal(false)}
+                                    className="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleAddSemester}
+                                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                                >
+                                    Add Semester
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* New Admin Modal */}
+                {showNewAdminModal && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+                            <div className="flex justify-between items-center mb-6">
+                                <h3 className="text-xl font-semibold text-gray-900">Create New Admin</h3>
+                                <button
+                                    onClick={closeNewAdminModal}
+                                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                                    aria-label="Close modal"
+                                >
+                                    <X size={24} />
+                                </button>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Admin Name *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={newAdminData.name}
+                                        onChange={(e) => setNewAdminData({ ...newAdminData, name: e.target.value })}
+                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        placeholder="Enter admin's full name"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Email Address *
+                                    </label>
+                                    <input
+                                        type="email"
+                                        value={newAdminData.email}
+                                        onChange={(e) => setNewAdminData({ ...newAdminData, email: e.target.value })}
+                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        placeholder="Enter admin's email address"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Password *
+                                    </label>
+                                    <div className="relative">
+                                        <input
+                                            type={newAdminData.showPassword ? 'text' : 'password'}
+                                            value={newAdminData.password}
+                                            onChange={(e) => setNewAdminData({ ...newAdminData, password: e.target.value })}
+                                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-10"
+                                            placeholder="Create a secure password"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setNewAdminData({ ...newAdminData, showPassword: !newAdminData.showPassword })}
+                                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                        >
+                                            {newAdminData.showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Permissions
+                                    </label>
+                                    <div className="space-y-2">
+                                        {['manage_users', 'manage_notes', 'manage_content'].map(permission => (
+                                            <label key={permission} className="flex items-center">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={newAdminData.permissions.includes(permission)}
+                                                    onChange={(e) => handlePermissionChange(permission, e.target.checked)}
+                                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                                />
+                                                <span className="ml-2 text-sm text-gray-700 capitalize">
+                                                    {permission.replace('_', ' ')}
+                                                </span>
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex justify-end space-x-3 mt-6">
+                                <button
+                                    onClick={closeNewAdminModal}
+                                    className="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleCreateNewAdmin}
+                                    disabled={!newAdminData.name || !newAdminData.email || !newAdminData.password}
+                                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+                                >
+                                    Create Admin
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
         </div>
     );
 };

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../supabase';
+import SupabaseService from '../services/supabaseService';
 import { Search, BookOpen, Download, Eye, Calendar, User } from 'lucide-react';
 
 const BrowseNotes = () => {
@@ -62,6 +63,20 @@ const BrowseNotes = () => {
 
     useEffect(() => {
         fetchNotes();
+
+        // Set up real-time subscription for notes updates
+        const notesSubscription = SupabaseService.subscribeToNotes((payload) => {
+            console.log('Real-time notes update in BrowseNotes:', payload);
+            // Refresh notes when there are changes
+            fetchNotes();
+        });
+
+        // Cleanup subscription on unmount
+        return () => {
+            if (notesSubscription && notesSubscription.unsubscribe) {
+                notesSubscription.unsubscribe();
+            }
+        };
     }, [fetchNotes]);
 
     const getDemoNotes = () => [

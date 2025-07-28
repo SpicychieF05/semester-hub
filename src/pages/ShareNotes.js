@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabase';
+import { useForm } from '../hooks';
 import { Upload, CheckCircle, AlertCircle } from 'lucide-react';
 
 const ShareNotes = () => {
-    const [user, setUser] = useState(null);
-    const [formData, setFormData] = useState({
+    // Initialize form hook
+    const form = useForm({
         title: '',
         subject: '',
         semester: '',
@@ -12,6 +13,8 @@ const ShareNotes = () => {
         tags: '',
         externalLink: ''
     });
+
+    const [user, setUser] = useState(null);
     const [file, setFile] = useState(null);
     const [uploading, setUploading] = useState(false);
     const [success, setSuccess] = useState(false);
@@ -79,7 +82,7 @@ const ShareNotes = () => {
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        setFormData(prev => ({
+        form.setValues(prev => ({
             ...prev,
             [name]: value
         }));
@@ -126,13 +129,13 @@ const ShareNotes = () => {
         }
 
         // Validate required fields
-        if (!formData.title.trim() || !formData.subject.trim() || !formData.description.trim()) {
+        if (!form.values.title.trim() || !form.values.subject.trim() || !form.values.description.trim()) {
             setError('Please fill in all required fields');
             return;
         }
 
         // Validate that either file or external link is provided
-        if (!file && !formData.externalLink.trim()) {
+        if (!file && !form.values.externalLink.trim()) {
             setError('Please either upload a file or provide an external link to your notes');
             return;
         }
@@ -157,7 +160,7 @@ const ShareNotes = () => {
                 .eq('id', currentUser.id)
                 .single();
 
-            let fileUrl = formData.externalLink || '#';
+            let fileUrl = form.values.externalLink || '#';
             let fileName = 'External Link';
             let fileSize = null;
 
@@ -166,10 +169,10 @@ const ShareNotes = () => {
                 try {
                     // First create the note record to get an ID
                     const tempNoteData = {
-                        title: formData.title,
-                        subject: formData.subject,
-                        semester: formData.semester,
-                        description: formData.description,
+                        title: form.values.title,
+                        subject: form.values.subject,
+                        semester: form.values.semester,
+                        description: form.values.description,
                         file_url: '#', // Temporary placeholder
                         file_name: file.name,
                         file_size: file.size,
@@ -211,17 +214,17 @@ const ShareNotes = () => {
                 } catch (uploadError) {
                     console.error('File upload failed:', uploadError);
                     // Fall back to external link if file upload fails
-                    if (!formData.externalLink) {
+                    if (!form.values.externalLink) {
                         throw new Error('File upload failed and no external link provided');
                     }
                 }
             } else {
                 // Create note document in Supabase (external link only)
                 const noteData = {
-                    title: formData.title,
-                    subject: formData.subject,
-                    semester: formData.semester,
-                    description: formData.description,
+                    title: form.values.title,
+                    subject: form.values.subject,
+                    semester: form.values.semester,
+                    description: form.values.description,
                     file_url: fileUrl,
                     file_name: fileName,
                     file_size: fileSize,
@@ -244,19 +247,12 @@ const ShareNotes = () => {
             }
 
             setSuccess(true);
-            setFormData({
-                title: '',
-                subject: '',
-                semester: '',
-                description: '',
-                tags: '',
-                externalLink: ''
-            });
+            form.reset();
             setFile(null);
 
-            // Reset form
-            const form = e.target;
-            form.reset();
+            // Reset form element
+            const formElement = e.target;
+            formElement.reset();
 
         } catch (error) {
             console.error('Error sharing note:', error);
@@ -324,7 +320,7 @@ const ShareNotes = () => {
                                 id="title"
                                 name="title"
                                 required
-                                value={formData.title}
+                                value={form.values.title}
                                 onChange={handleInputChange}
                                 placeholder="e.g., Data Structures and Algorithms - Complete Guide"
                                 className="input-field"
@@ -341,7 +337,7 @@ const ShareNotes = () => {
                                     id="subject"
                                     name="subject"
                                     required
-                                    value={formData.subject}
+                                    value={form.values.subject}
                                     onChange={handleInputChange}
                                     className="input-field"
                                 >
@@ -361,7 +357,7 @@ const ShareNotes = () => {
                                     id="semester"
                                     name="semester"
                                     required
-                                    value={formData.semester}
+                                    value={form.values.semester}
                                     onChange={handleInputChange}
                                     className="input-field"
                                 >
@@ -383,7 +379,7 @@ const ShareNotes = () => {
                                 name="description"
                                 required
                                 rows={4}
-                                value={formData.description}
+                                value={form.values.description}
                                 onChange={handleInputChange}
                                 placeholder="Describe what your notes cover, topics included, and any special features..."
                                 className="input-field resize-none"
@@ -399,7 +395,7 @@ const ShareNotes = () => {
                                 type="text"
                                 id="tags"
                                 name="tags"
-                                value={formData.tags}
+                                value={form.values.tags}
                                 onChange={handleInputChange}
                                 placeholder="e.g., algorithms, data structures, programming (separate with commas)"
                                 className="input-field"
@@ -418,7 +414,7 @@ const ShareNotes = () => {
                                 type="url"
                                 id="externalLink"
                                 name="externalLink"
-                                value={formData.externalLink}
+                                value={form.values.externalLink}
                                 onChange={handleInputChange}
                                 className="w-full px-3 py-2 border border-secondary-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                                 placeholder="https://example.com/your-notes"
