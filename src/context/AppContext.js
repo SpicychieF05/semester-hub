@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { supabase } from '../supabase';
-import { SupabaseService } from '../services/supabaseService';
+import SupabaseService from '../services/supabaseService';
 
 // Initial state
 const initialState = {
