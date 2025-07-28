@@ -1,14 +1,11 @@
 import { createClient } from '@supabase/supabase-js'
 
 // Use environment variables for Supabase configuration
-const supabaseUrl = process.env.REACT_APP_SUPABASE_URL
-const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY
+const supabaseUrl = process.env.REACT_APP_SUPABASE_URL || 'https://uevunvpcbvvduvjqcwwl.supabase.co'
+const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVldnVudnBjYnZ2ZHV2anFjd3dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM2NDQ0MjcsImV4cCI6MjA2OTIyMDQyN30.HvcQZb-dw0cp4PvKF5xTQguasNk-2hlgINGWDc7zjr4'
 
-// Validate that environment variables are set
-if (!supabaseUrl || !supabaseAnonKey) {
-    console.error('Missing Supabase environment variables');
-    throw new Error('Missing Supabase environment variables. Please check your .env file.')
-}
+// Create Supabase client
+export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 // Get the site URL - use environment variable if available, otherwise fallback
 const getSiteUrl = () => {
@@ -17,8 +14,6 @@ const getSiteUrl = () => {
             ? 'https://semester-hub.vercel.app'
             : window.location.origin)
 }
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 // Auth helper functions to mimic Firebase Auth API
 export const auth = {
