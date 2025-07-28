@@ -1,11 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase, auth } from '../supabase';
-import { SupabaseService } from '../services/supabaseService';
-import { useApp } from '../context/AppContext';
-import { useToast, useModal, useForm } from '../hooks';
-import { ConfirmModal, FormModal } from '../components/Modal';
-import { InputField, SelectField, CheckboxField } from '../components/FormComponents';
 import {
     BookOpen,
     Users,
@@ -24,22 +19,7 @@ import {
 const AdminDashboard = () => {
     const navigate = useNavigate();
 
-    // Initialize hooks and context
-    const { state, dispatch } = useApp();
-    const { showToast } = useToast();
-    const { openModal, closeModal } = useModal();
-    const departmentForm = useForm({ name: '', code: '', description: '' });
-    const subjectForm = useForm({ name: '', code: '', description: '', department_id: '' });
-    const semesterForm = useForm({ number: '', name: '', is_active: true });
-    const adminForm = useForm({
-        name: '',
-        email: '',
-        password: '',
-        role: 'admin',
-        permissions: ['manage_notes', 'manage_users'],
-        showPassword: false
-    });
-
+    // State for dashboard data
     const [activeTab, setActiveTab] = useState('content');
     const [activeContentTab, setActiveContentTab] = useState('departments');
     const [pendingNotes, setPendingNotes] = useState([]);
