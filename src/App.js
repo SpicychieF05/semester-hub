@@ -30,24 +30,47 @@ class ErrorBoundary extends React.Component {
     }
 
     componentDidCatch(error, errorInfo) {
-        console.error('App Error:', error, errorInfo);
+        console.error('🚨 App Error Boundary caught an error:');
+        console.error('Error:', error);
+        console.error('Error Info:', errorInfo);
+        console.error('Stack:', error.stack);
+
+        // Log to help debug white screen issues
+        if (error.message.includes('Supabase') || error.message.includes('environment')) {
+            console.error('🔧 This appears to be a Supabase configuration error');
+            console.error('Check your environment variables in Vercel dashboard');
+        }
     }
 
     render() {
         if (this.state.hasError) {
             return (
                 <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                    <div className="text-center p-8">
-                        <h1 className="text-2xl font-bold text-red-600 mb-4">Something went wrong</h1>
-                        <p className="text-gray-600 mb-4">
-                            {this.state.error?.message || 'An unexpected error occurred'}
-                        </p>
+                    <div className="text-center p-8 max-w-md">
+                        <h1 className="text-2xl font-bold text-red-600 mb-4">🚨 Application Error</h1>
+                        <div className="bg-red-50 border border-red-200 rounded p-4 mb-4">
+                            <p className="text-gray-800 font-medium mb-2">Error Details:</p>
+                            <p className="text-sm text-gray-600 break-words">
+                                {this.state.error?.message || 'An unexpected error occurred'}
+                            </p>
+                        </div>
+                        {this.state.error?.message?.includes('Supabase') && (
+                            <div className="bg-blue-50 border border-blue-200 rounded p-4 mb-4">
+                                <p className="text-blue-800 text-sm">
+                                    💡 This appears to be a database configuration issue.
+                                    Please check the browser console for more details.
+                                </p>
+                            </div>
+                        )}
                         <button
                             onClick={() => window.location.reload()}
-                            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                            className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
                         >
-                            Reload Page
+                            🔄 Reload Page
                         </button>
+                        <div className="mt-4 text-xs text-gray-500">
+                            Check browser console (F12) for technical details
+                        </div>
                     </div>
                 </div>
             );
@@ -72,6 +95,10 @@ try {
 }
 
 function App() {
+    // Debug logging for deployment
+    console.log('🚀 App starting...');
+    console.log('Environment:', process.env.NODE_ENV);
+
     const [user, setUser] = useState(null);
     const [userProfile, setUserProfile] = useState(null);
     const [loading, setLoading] = useState(true);
