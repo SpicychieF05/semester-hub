@@ -2,11 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { auth, supabase } from './supabase';
 
+// Context and Services
+import { AppProvider } from './context/AppContext';
+
 // Components
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import LoadingScreen from './components/LoadingScreen';
 import ProtectedAdminRoute from './components/ProtectedAdminRoute';
+import ToastContainer from './components/ToastContainer';
 import HomePage from './pages/HomePage';
 import BrowseNotes from './pages/BrowseNotes';
 import ShareNotes from './pages/ShareNotes';
@@ -97,26 +101,29 @@ function App() {
     }
 
     return (
-        <Router>
-            <div className="min-h-screen bg-gray-50 flex flex-col">
-                <Navbar user={currentUser} />
-                <main className="flex-grow">
-                    <Routes>
-                        <Route path="/" element={<HomePage />} />
-                        <Route path="/browse" element={<BrowseNotes />} />
-                        <Route path="/share" element={currentUser ? <ShareNotes /> : <Login />} />
-                        <Route path="/note/:id" element={<NoteDetail />} />
-                        <Route path="/admin-access" element={<AdminLogin />} />
-                        <Route path="/admin-login" element={<AdminLogin />} />
-                        <Route path="/admin" element={<ProtectedAdminRoute />} />
-                        <Route path="/admin-setup" element={<AdminSetup />} />
-                        <Route path="/login" element={<Login />} />
-                        <Route path="/register" element={<Register />} />
-                    </Routes>
-                </main>
-                <Footer />
-            </div>
-        </Router>
+        <AppProvider>
+            <Router>
+                <div className="min-h-screen bg-gray-50 flex flex-col">
+                    <Navbar user={currentUser} />
+                    <main className="flex-grow">
+                        <Routes>
+                            <Route path="/" element={<HomePage />} />
+                            <Route path="/browse" element={<BrowseNotes />} />
+                            <Route path="/share" element={currentUser ? <ShareNotes /> : <Login />} />
+                            <Route path="/note/:id" element={<NoteDetail />} />
+                            <Route path="/admin-access" element={<AdminLogin />} />
+                            <Route path="/admin-login" element={<AdminLogin />} />
+                            <Route path="/admin" element={<ProtectedAdminRoute />} />
+                            <Route path="/admin-setup" element={<AdminSetup />} />
+                            <Route path="/login" element={<Login />} />
+                            <Route path="/register" element={<Register />} />
+                        </Routes>
+                    </main>
+                    <Footer />
+                    <ToastContainer />
+                </div>
+            </Router>
+        </AppProvider>
     );
 }
 
