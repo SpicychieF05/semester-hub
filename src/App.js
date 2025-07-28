@@ -9,6 +9,7 @@ import LoadingScreen from './components/LoadingScreen';
 import ProtectedAdminRoute from './components/ProtectedAdminRoute';
 import ToastContainer from './components/ToastContainer';
 import ErrorBoundary from './components/ErrorBoundary';
+import AuthCallback from './components/AuthCallback';
 import HomePage from './pages/HomePage';
 import BrowseNotes from './pages/BrowseNotes';
 import ShareNotes from './pages/ShareNotes';
@@ -109,6 +110,7 @@ function App() {
                                 <Route path="/browse" element={<BrowseNotes />} />
                                 <Route path="/share" element={currentUser ? <ShareNotes /> : <Login />} />
                                 <Route path="/note/:id" element={<NoteDetail />} />
+                                <Route path="/auth/callback" element={<AuthCallback />} />
                                 <Route path="/admin-access" element={<AdminLogin />} />
                                 <Route path="/admin-login" element={<AdminLogin />} />
                                 <Route path="/admin" element={<ProtectedAdminRoute />} />

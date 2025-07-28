@@ -9,10 +9,12 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 // Get the site URL - use environment variable if available, otherwise fallback
 const getSiteUrl = () => {
-    return process.env.REACT_APP_SITE_URL ||
-        (process.env.NODE_ENV === 'production'
-            ? 'https://semesterhub.vercel.app'
-            : window.location.origin)
+    // In production, always use the environment variable or fallback
+    if (process.env.NODE_ENV === 'production') {
+        return process.env.REACT_APP_SITE_URL || 'https://semesterhub.vercel.app'
+    }
+    // In development, use localhost
+    return process.env.REACT_APP_SITE_URL || window.location.origin
 }
 
 // Auth helper functions to mimic Firebase Auth API
@@ -82,25 +84,43 @@ export const auth = {
 
     // Sign in with Google
     signInWithGoogle: async () => {
+        const siteUrl = getSiteUrl()
+        console.log('Google Sign-In: Using site URL:', siteUrl)
+
         const { data, error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
-                redirectTo: `${getSiteUrl()}/`
+                redirectTo: `${siteUrl}/auth/callback`,
+                queryParams: {
+                    prompt: 'select_account'
+                }
             }
         })
-        if (error) throw error
+        if (error) {
+            console.error('Google OAuth error:', error)
+            throw error
+        }
         return data
     },
 
     // Sign up with Google (same as sign in for OAuth)
     signUpWithGoogle: async () => {
+        const siteUrl = getSiteUrl()
+        console.log('Google Sign-Up: Using site URL:', siteUrl)
+
         const { data, error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
-                redirectTo: `${getSiteUrl()}/`
+                redirectTo: `${siteUrl}/auth/callback`,
+                queryParams: {
+                    prompt: 'select_account'
+                }
             }
         })
-        if (error) throw error
+        if (error) {
+            console.error('Google OAuth error:', error)
+            throw error
+        }
         return data
     },
 

@@ -111,6 +111,33 @@ chmod +x deploy-check.sh
    - Set in Vercel dashboard, not in code
    - Redeploy after adding env vars
 
+5. **Google Sign-In 404 Error (DEPLOYMENT_NOT_FOUND):**
+   - **Issue:** Google OAuth redirect URL is incorrect
+   - **Solution:** Configure Supabase OAuth settings:
+     1. Go to Supabase Dashboard → Authentication → Providers
+     2. Enable Google provider
+     3. Add your domain to "Site URL": `https://semesterhub.vercel.app`
+     4. Add redirect URLs:
+        - `https://semesterhub.vercel.app`
+        - `https://semesterhub.vercel.app/auth/callback`
+     5. Configure Google OAuth in Google Cloud Console:
+        - Add `https://semesterhub.vercel.app` to authorized domains
+        - Add `https://uevunvpcbvvduvjqcwwl.supabase.co/auth/v1/callback` to redirect URIs
+
+6. **OAuth Configuration Steps:**
+   ```
+   Supabase Dashboard Steps:
+   1. Project Settings → API → Project URL & Keys
+   2. Authentication → Settings → Site URL: https://your-domain.vercel.app
+   3. Authentication → Providers → Google → Enable
+   4. Add Google Client ID & Secret from Google Cloud Console
+   
+   Google Cloud Console Steps:
+   1. APIs & Services → Credentials → OAuth 2.0 Client IDs
+   2. Authorized JavaScript origins: https://your-domain.vercel.app
+   3. Authorized redirect URIs: https://uevunvpcbvvduvjqcwwl.supabase.co/auth/v1/callback
+   ```
+
 ## ✅ Success Indicators
 
 - ✅ Build completes without errors
@@ -124,6 +151,7 @@ chmod +x deploy-check.sh
 - [Vercel Documentation](https://vercel.com/docs)
 - [Create React App Deployment](https://create-react-app.dev/docs/deployment/)
 - [Supabase Documentation](https://supabase.com/docs)
+- [Google OAuth Fix Guide](./GOOGLE_OAUTH_FIX.md) - **READ THIS for Google Sign-In issues**
 
 ---
 
