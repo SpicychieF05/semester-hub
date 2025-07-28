@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabase';
-import { useForm } from '../hooks';
 import { Upload, CheckCircle, AlertCircle } from 'lucide-react';
 
 const ShareNotes = () => {
-    // Initialize form hook
-    const form = useForm({
+    // Form state management
+    const [formValues, setFormValues] = useState({
         title: '',
         subject: '',
         semester: '',
@@ -13,6 +12,33 @@ const ShareNotes = () => {
         tags: '',
         externalLink: ''
     });
+
+    // Form handlers
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormValues(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
+
+    const resetForm = () => {
+        setFormValues({
+            title: '',
+            subject: '',
+            semester: '',
+            description: '',
+            tags: '',
+            externalLink: ''
+        });
+    };
+
+    // Create form object to match previous interface
+    const form = {
+        values: formValues,
+        handleChange: handleChange,
+        reset: resetForm
+    };
 
     const [user, setUser] = useState(null);
     const [file, setFile] = useState(null);
