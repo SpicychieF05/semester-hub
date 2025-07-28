@@ -1,6 +1,5 @@
 # 🎓 Semester Hub
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/SpicychieF05/semester-hub)
 [![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](https://github.com/SpicychieF05/semester-hub)
 [![React](https://img.shields.io/badge/React-18.2.0-61DAFB.svg)](https://reactjs.org/)
 [![Supabase](https://img.shields.io/badge/Supabase-Backend-00C896.svg)](https://supabase.com/)
