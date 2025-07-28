@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../supabase';
-import SupabaseService from '../services/supabaseService';
+import { SupabaseService } from '../services/supabaseService';
 import { Search, BookOpen, Download, Eye, Calendar, User } from 'lucide-react';
 
 const BrowseNotes = () => {
