@@ -20,6 +20,7 @@ import LoadingSpinner from './components/LoadingSpinner';
 
 // Import Supabase
 import { auth, supabase } from './supabase';
+import './deployment-check'; // Deployment verification
 
 function App() {
     const [user, setUser] = useState(null);
