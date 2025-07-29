@@ -1,74 +1,27 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, MessageCircle, Github, Linkedin, Phone, MapPin, User, GraduationCap, X, Bug, Send } from 'lucide-react';
+import { Heart, MessageCircle, Github, Linkedin, Phone, MapPin, User, GraduationCap, X } from 'lucide-react';
+import BugReportModal from './BugReportModal';
 
-const Footer = () => {
+const Footer = ({ user }) => {
     const [showContactModal, setShowContactModal] = useState(false);
     const [showBugReportModal, setShowBugReportModal] = useState(false);
-    const [bugReportForm, setBugReportForm] = useState({
-        page: '',
-        description: ''
-    });
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [submitStatus, setSubmitStatus] = useState(null); // 'success', 'error', or null
 
     const openContactModal = useCallback(() => setShowContactModal(true), []);
     const closeContactModal = useCallback(() => setShowContactModal(false), []);
 
     const openBugReportModal = useCallback(() => {
+        // Check if user is logged in
+        if (!user) {
+            alert('Please log in to report bugs. This helps us provide better support and follow up if needed.');
+            return;
+        }
         setShowBugReportModal(true);
-        setSubmitStatus(null);
-        setBugReportForm({ page: '', description: '' });
-    }, []);
+    }, [user]);
 
     const closeBugReportModal = useCallback(() => {
         setShowBugReportModal(false);
-        setSubmitStatus(null);
-        setBugReportForm({ page: '', description: '' });
-        setIsSubmitting(false);
     }, []);
-
-    // Handle bug report form submission
-    const handleBugReportSubmit = async (e) => {
-        e.preventDefault();
-        setIsSubmitting(true);
-        setSubmitStatus(null);
-
-        try {
-            // Formspree endpoint for bug reports - sends to mallickchirantan@gmail.com
-            const response = await fetch('https://formspree.io/f/mdkdzpzw', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    page: bugReportForm.page,
-                    description: bugReportForm.description,
-                    subject: 'Bug Report from Semester Hub'
-                }),
-            });
-
-            if (response.ok) {
-                setSubmitStatus('success');
-            } else {
-                setSubmitStatus('error');
-            }
-        } catch (error) {
-            console.error('Error submitting bug report:', error);
-            setSubmitStatus('error');
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
-    // Handle form input changes
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setBugReportForm(prev => ({
-            ...prev,
-            [name]: value
-        }));
-    };
 
     // Handle escape key to close modal
     useEffect(() => {
@@ -76,13 +29,11 @@ const Footer = () => {
             if (event.key === 'Escape') {
                 if (showContactModal) {
                     closeContactModal();
-                } else if (showBugReportModal) {
-                    closeBugReportModal();
                 }
             }
         };
 
-        if (showContactModal || showBugReportModal) {
+        if (showContactModal) {
             document.addEventListener('keydown', handleEscapeKey);
             document.body.style.overflow = 'hidden';
         }
@@ -91,7 +42,7 @@ const Footer = () => {
             document.removeEventListener('keydown', handleEscapeKey);
             document.body.style.overflow = 'unset';
         };
-    }, [showContactModal, showBugReportModal, closeContactModal, closeBugReportModal]);
+    }, [showContactModal, closeContactModal]);
     return (
         <footer className="bg-secondary-900 text-white">
             <div className="container-responsive py-8 sm:py-12">
@@ -382,150 +333,11 @@ const Footer = () => {
             )}
 
             {/* Bug Report Modal */}
-            {showBugReportModal && (
-                <div
-                    className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4"
-                    role="dialog"
-                    aria-modal="true"
-                    aria-labelledby="bug-report-modal-title"
-                    onClick={closeBugReportModal}
-                >
-                    <div
-                        className="bg-white rounded-lg p-4 sm:p-6 w-full max-w-md mx-2 sm:mx-4 max-h-[95vh] sm:max-h-[90vh] overflow-y-auto"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <div className="flex justify-between items-center mb-4 sm:mb-6">
-                            <h3 id="bug-report-modal-title" className="text-lg sm:text-xl font-bold text-gray-900 flex items-center">
-                                <Bug className="mr-2 text-red-500" size={20} />
-                                Report a Bug
-                            </h3>
-                            <button
-                                onClick={closeBugReportModal}
-                                className="text-gray-400 hover:text-gray-600 transition-colors p-1"
-                                aria-label="Close bug report modal"
-                            >
-                                <X size={20} />
-                            </button>
-                        </div>
-
-                        {submitStatus === 'success' ? (
-                            // Success Message
-                            <div className="text-center py-8">
-                                <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-                                    <div className="flex items-center justify-center mb-4">
-                                        <div className="bg-green-100 rounded-full p-2">
-                                            <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                                            </svg>
-                                        </div>
-                                    </div>
-                                    <h4 className="text-lg font-semibold text-green-800 mb-2">Thank you!</h4>
-                                    <p className="text-green-700">
-                                        Your bug report has been sent successfully. We'll look into it and get back to you if needed.
-                                    </p>
-                                </div>
-                                <button
-                                    onClick={closeBugReportModal}
-                                    className="mt-4 px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
-                                >
-                                    Close
-                                </button>
-                            </div>
-                        ) : (
-                            // Bug Report Form
-                            <>
-                                <div className="mb-4">
-                                    <p className="text-gray-600 text-sm">
-                                        Help us improve Semester Hub by reporting any bugs or issues you encounter.
-                                    </p>
-                                </div>
-
-                                {/* 
-                                    Formspree form integration - sends bug reports to mallickchirantan@gmail.com
-                                    Form ID: mdkdzpzw
-                                */}
-                                <form onSubmit={handleBugReportSubmit} action="https://formspree.io/f/mdkdzpzw" method="POST">
-                                    <div className="space-y-4">
-                                        {/* Page Field */}
-                                        <div>
-                                            <label htmlFor="page" className="block text-sm font-medium text-gray-700 mb-1">
-                                                On what page did the bug occur? *
-                                            </label>
-                                            <input
-                                                type="text"
-                                                id="page"
-                                                name="page"
-                                                value={bugReportForm.page}
-                                                onChange={handleInputChange}
-                                                required
-                                                placeholder="e.g., Home page, Browse Notes, Share Notes..."
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                                                disabled={isSubmitting}
-                                            />
-                                        </div>
-
-                                        {/* Description Field */}
-                                        <div>
-                                            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-                                                Please describe the bug *
-                                            </label>
-                                            <textarea
-                                                id="description"
-                                                name="description"
-                                                value={bugReportForm.description}
-                                                onChange={handleInputChange}
-                                                required
-                                                rows={4}
-                                                placeholder="Please describe what happened, what you expected to happen, and any steps to reproduce the issue..."
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-vertical"
-                                                disabled={isSubmitting}
-                                            />
-                                        </div>
-
-                                        {/* Error Message */}
-                                        {submitStatus === 'error' && (
-                                            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                                                <p className="text-red-700 text-sm">
-                                                    Oops! Something went wrong. Please try again or contact us directly.
-                                                </p>
-                                            </div>
-                                        )}
-
-                                        {/* Submit Button */}
-                                        <div className="flex justify-end space-x-3 pt-4">
-                                            <button
-                                                type="button"
-                                                onClick={closeBugReportModal}
-                                                className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
-                                                disabled={isSubmitting}
-                                            >
-                                                Cancel
-                                            </button>
-                                            <button
-                                                type="submit"
-                                                disabled={isSubmitting || !bugReportForm.page.trim() || !bugReportForm.description.trim()}
-                                                className="px-6 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center"
-                                            >
-                                                {isSubmitting ? (
-                                                    <>
-                                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                                                        Submitting...
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <Send size={16} className="mr-2" />
-                                                        Send Report
-                                                    </>
-                                                )}
-                                            </button>
-                                        </div>
-                                    </div>
-                                </form>
-                            </>
-                        )}
-                    </div>
-                </div>
-            )}
+            <BugReportModal
+                isOpen={showBugReportModal}
+                onClose={closeBugReportModal}
+                user={user}
+            />
         </footer>
     );
 };

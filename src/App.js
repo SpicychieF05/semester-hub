@@ -119,7 +119,7 @@ function App() {
                                 <Route path="/register" element={<Register />} />
                             </Routes>
                         </main>
-                        <Footer />
+                        <Footer user={currentUser} />
                         <ToastContainer />
                     </div>
                 </Router>
