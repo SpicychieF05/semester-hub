@@ -143,7 +143,7 @@ const Footer = ({ user }) => {
                                     className="text-secondary-300 hover:text-white transition-colors cursor-pointer"
                                     onClick={openBugReportModal}
                                 >
-                                    Help Center
+                                    Bug Report
                                 </span>
                             </li>
                             <li>
