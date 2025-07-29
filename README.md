@@ -380,7 +380,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Chirantan Mallick**
 - LinkedIn: [Chirantan Mallick](https://www.linkedin.com/in/chirantan-mallick)
-- Linktree: [Chirantan_Mallick](inktr.ee/chirantan_mallick)
+- Linktree: [Chirantan Mallick](https://linktr.ee/chirantan_mallick)
 
 ## 🙏 Acknowledgments
 
