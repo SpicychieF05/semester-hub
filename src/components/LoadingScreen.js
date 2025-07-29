@@ -60,7 +60,7 @@ const LoadingScreen = ({ onComplete }) => {
                         className="inline-flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 mb-6"
                     >
                         <Github size={18} />
-                        <span>🔗 Semester Hub GitHub Repo</span>
+                        <span>Semester-Hub GitHub Repo</span>
                         <ExternalLink size={16} />
                     </a>
                 </div>
@@ -79,7 +79,7 @@ const LoadingScreen = ({ onComplete }) => {
                             className="flex items-center justify-center space-x-2 text-gray-300 hover:text-white transition-colors duration-200"
                         >
                             <Github size={18} />
-                            <span>📬 GitHub: @SpicychieF</span>
+                            <span>GitHub: @SpicychieF</span>
                         </a>
 
                         <a
@@ -89,7 +89,7 @@ const LoadingScreen = ({ onComplete }) => {
                             className="flex items-center justify-center space-x-2 text-gray-300 hover:text-white transition-colors duration-200"
                         >
                             <Linkedin size={18} />
-                            <span>💼 LinkedIn: Chirantan Mallick</span>
+                            <span>LinkedIn: Chirantan Mallick</span>
                         </a>
 
                         <a
@@ -99,7 +99,7 @@ const LoadingScreen = ({ onComplete }) => {
                             className="flex items-center justify-center space-x-2 text-gray-300 hover:text-white transition-colors duration-200"
                         >
                             <ExternalLink size={18} />
-                            <span>🌐 Linktree: linktr.ee/chirantan_mallick</span>
+                            <span>Linktree: linktr.ee/chirantan_mallick</span>
                         </a>
                     </div>
                 </div>
