@@ -379,8 +379,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 👨‍💻 Developer
 
 **Chirantan Mallick**
-- GitHub: [@SpicychieF05](https://github.com/SpicychieF05)
-- Project: [Semester Hub](https://github.com/SpicychieF05/semester-hub)
+- LinkedIn: [Chirantan Mallick](https://www.linkedin.com/in/chirantan-mallick)
+- Linktree: [Chirantan_Mallick](inktr.ee/chirantan_mallick)
 
 ## 🙏 Acknowledgments
 
