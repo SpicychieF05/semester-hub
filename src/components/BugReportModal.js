@@ -173,7 +173,7 @@ const BugReportModal = ({ isOpen, onClose, user }) => {
                                         className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg"
                                         disabled={isSubmitting}
                                         style={{
-                                            color: '#000000 !important',
+                                            color: '#000000',
                                             backgroundColor: '#ffffff',
                                             border: '1px solid #d1d5db'
                                         }}
@@ -196,7 +196,7 @@ const BugReportModal = ({ isOpen, onClose, user }) => {
                                         className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg resize-vertical"
                                         disabled={isSubmitting}
                                         style={{
-                                            color: '#000000 !important',
+                                            color: '#000000',
                                             backgroundColor: '#ffffff',
                                             border: '1px solid #d1d5db'
                                         }}
