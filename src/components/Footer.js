@@ -114,36 +114,36 @@ const Footer = () => {
                         <h3 className="text-lg font-semibold mb-4">Contact & Support</h3>
                         <ul className="space-y-2">
                             <li>
-                                <button
-                                    className="text-secondary-300 hover:text-white transition-colors bg-transparent border-none cursor-pointer text-left p-0"
+                                <span
+                                    className="text-secondary-300 hover:text-white transition-colors cursor-pointer"
                                     onClick={openContactModal}
                                 >
                                     Contact Us
-                                </button>
+                                </span>
                             </li>
                             <li>
-                                <button
-                                    className="text-secondary-300 hover:text-white transition-colors bg-transparent border-none cursor-pointer text-left p-0"
+                                <span
+                                    className="text-secondary-300 hover:text-white transition-colors cursor-pointer"
                                     onClick={() => alert('Help Center coming soon!')}
                                 >
                                     Help Center
-                                </button>
+                                </span>
                             </li>
                             <li>
-                                <button
-                                    className="text-secondary-300 hover:text-white transition-colors bg-transparent border-none cursor-pointer text-left p-0"
+                                <span
+                                    className="text-secondary-300 hover:text-white transition-colors cursor-pointer"
                                     onClick={() => alert('Terms of Service coming soon!')}
                                 >
                                     Terms of Service
-                                </button>
+                                </span>
                             </li>
                             <li>
-                                <button
-                                    className="text-secondary-300 hover:text-white transition-colors bg-transparent border-none cursor-pointer text-left p-0"
+                                <span
+                                    className="text-secondary-300 hover:text-white transition-colors cursor-pointer"
                                     onClick={() => alert('Privacy Policy coming soon!')}
                                 >
                                     Privacy Policy
-                                </button>
+                                </span>
                             </li>
                         </ul>
                     </div>
