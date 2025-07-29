@@ -170,9 +170,13 @@ const BugReportModal = ({ isOpen, onClose, user }) => {
                                         onChange={handleInputChange}
                                         required
                                         placeholder="e.g., Home page, Browse Notes, Share Notes..."
-                                        className="w-full px-3 py-2 bg-white border border-gray-300 text-black placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:text-black transition-colors"
+                                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg"
                                         disabled={isSubmitting}
-                                        style={{ color: '#000000' }}
+                                        style={{
+                                            color: '#000000 !important',
+                                            backgroundColor: '#ffffff',
+                                            border: '1px solid #d1d5db'
+                                        }}
                                     />
                                 </div>
 
@@ -189,9 +193,13 @@ const BugReportModal = ({ isOpen, onClose, user }) => {
                                         required
                                         rows={4}
                                         placeholder="Please describe what happened, what you expected to happen, and any steps to reproduce the issue..."
-                                        className="w-full px-3 py-2 bg-white border border-gray-300 text-black placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:text-black transition-colors resize-vertical"
+                                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg resize-vertical"
                                         disabled={isSubmitting}
-                                        style={{ color: '#000000' }}
+                                        style={{
+                                            color: '#000000 !important',
+                                            backgroundColor: '#ffffff',
+                                            border: '1px solid #d1d5db'
+                                        }}
                                     />
                                 </div>
 
