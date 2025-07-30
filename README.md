@@ -1,4 +1,4 @@
-# 📚 Semester Hub
+# 🎓 Semester Hub
 
 <div align="center">
   <img src="public/images/sm-logo.png" alt="Semester Hub Logo" width="120" height="120" style="border-radius: 50%;">
@@ -11,7 +11,7 @@
   [![Vercel](https://img.shields.io/badge/Vercel-Deployed-black?style=for-the-badge&logo=vercel)](https://vercel.com/)
   [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
   
-  [![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-Visit_Now-success?style=for-the-badge&logo=vercel)](https://semester-hub.vercel.app/)
+  [![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-Visit_Now-success?style=for-the-badge&logo=vercel)](https://semesterhub.vercel.app/)
   
   **Empowering students through collaborative learning and secure knowledge sharing**
 </div>
