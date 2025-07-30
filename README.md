@@ -143,7 +143,6 @@ Semester Hub is a modern, secure, and feature-rich platform designed for student
    ```bash
    npm run build
    ```
-
 ---
 
 ## 📁 **Project Structure**
