@@ -83,7 +83,7 @@ Semester Hub is a modern, secure, and feature-rich platform designed for student
   <small>Auth, Database, RLS, Real-time</small>
 </td>
 <td align="center">
-  <img src="https://img.icons8.com/?size=100&id=x7XMNGh2vdqA&format=png&color=000000" width="40" height="40"/><br>
+  <img src="https://img.icons8.com/?size=100&id=x7XMNGh2vdqA&format=png&color=ffffff" width="40" height="40"/><br>
   <strong>Tailwind CSS</strong><br>
   <small>Responsive design system</small>
 </td>
