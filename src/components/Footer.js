@@ -181,6 +181,7 @@ const Footer = ({ user }) => {
                     <div className="flex flex-col md:flex-row justify-between items-center">
                         <div className="flex items-center space-x-2 text-secondary-300 mb-4 md:mb-0">
                             <span>© 2025 Semester Hub. All rights reserved.</span>
+                            <span className="mx-2">|</span>
                             <Heart size={16} className="text-red-500" fill="currentColor" />
                             <span>Created by</span>
                             <span className="font-semibold text-white">Chirantan Mallick</span>
