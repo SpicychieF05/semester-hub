@@ -304,6 +304,33 @@ If you encounter any issues or have questions:
 
 ---
 
+## 🐛 **Bug Report Feature**
+
+Semester Hub includes a built-in bug reporting system that allows users to report issues directly through the platform:
+
+### 🎯 **How It Works**
+- **User-Friendly Interface**: Accessible bug report modal in the footer section
+- **Authentication Required**: Users must be logged in to submit bug reports
+- **Direct Communication**: Reports are sent directly to the developer's email
+- **Detailed Information**: Includes user information and timestamp for better support
+
+### 📝 **Reporting Process**
+1. **Login Required**: Users need to authenticate before reporting bugs
+2. **Access via Footer**: Click "Bug Report" in the Contact & Support section
+3. **Fill Details**: Provide page information and detailed bug description
+4. **Submit**: Report is sent directly to `mallickchirantan@gmail.com`
+5. **Follow-up**: Developer can respond directly for resolution
+
+### 🛡️ **Security & Privacy**
+- User information is only collected for support purposes
+- Reports include user name, email, and timestamp
+- No sensitive data is transmitted
+- Used exclusively for bug tracking and resolution
+
+This feature ensures quick communication between users and the development team, enabling faster bug fixes and platform improvements.
+
+---
+
 ## 🏆 **Acknowledgments**
 
 ### 🙏 **Special Thanks**
@@ -329,7 +356,7 @@ This project was inspired by the need for a secure, modern, and user-friendly pl
 
 ---
 
-*Last updated: January 2025*
+*Last updated: July 2025*
 
 </div>
 
