@@ -1,8 +1,9 @@
 {
     "version": 2,
+    "framework": "create-react-app",
     "buildCommand": "npm run build",
     "outputDirectory": "build",
-    "installCommand": "npm ci",
+    "installCommand": "npm ci --legacy-peer-deps",
     "builds": [
         {
             "src": "package.json",
@@ -47,15 +48,5 @@
             "src": "/(.*)",
             "dest": "/index.html"
         }
-    ],
-    "functions": {
-        "src/pages/**/*.js": {
-            "maxDuration": 10
-        }
-    },
-    "env": {
-        "REACT_APP_SUPABASE_URL": "@react_app_supabase_url",
-        "REACT_APP_SUPABASE_ANON_KEY": "@react_app_supabase_anon_key",
-        "REACT_APP_SITE_URL": "@react_app_site_url"
-    }
+    ]
 }
