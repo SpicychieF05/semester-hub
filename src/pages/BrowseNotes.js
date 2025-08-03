@@ -238,20 +238,20 @@ const BrowseNotes = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 py-4 sm:py-8">
+        <div className="min-h-screen bg-gray-50 dark:bg-dark-primary py-4 sm:py-8 transition-colors duration-300">
             <div className="container-responsive">
                 {/* Header */}
                 <div className="text-center mb-8 sm:mb-12">
-                    <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-secondary-900 mb-2 sm:mb-4 px-2">
+                    <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-secondary-900 dark:text-text-primary mb-2 sm:mb-4 px-2">
                         Browse Study Notes
                     </h1>
-                    <p className="text-base sm:text-lg md:text-xl text-secondary-600 max-w-3xl mx-auto px-4">
+                    <p className="text-base sm:text-lg md:text-xl text-secondary-600 dark:text-text-secondary max-w-3xl mx-auto px-4">
                         Discover high-quality study materials shared by students from various subjects and semesters
                     </p>
                 </div>
 
                 {/* Login Notice */}
-                <div className="bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-xl p-4 sm:p-6 mb-6 sm:mb-8">
+                <div className="bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 border border-orange-200 dark:border-orange-700 rounded-xl p-4 sm:p-6 mb-6 sm:mb-8">
                     <div className="flex items-center justify-center space-x-3">
                         <div className="flex-shrink-0">
                             <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
@@ -273,11 +273,11 @@ const BrowseNotes = () => {
                 </div>
 
                 {/* Search and Filters */}
-                <div className="bg-white rounded-xl shadow-sm border border-secondary-200 p-4 sm:p-6 mb-6 sm:mb-8">
+                <div className="bg-white dark:bg-dark-secondary rounded-xl shadow-sm border border-secondary-200 dark:border-border-subtle p-4 sm:p-6 mb-6 sm:mb-8 transition-colors duration-300">
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                         {/* Search */}
                         <div className="relative sm:col-span-2 lg:col-span-1">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary-400" size={20} />
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary-400 dark:text-text-muted" size={20} />
                             <input
                                 type="text"
                                 placeholder="Search notes..."
@@ -327,26 +327,26 @@ const BrowseNotes = () => {
                 {filteredNotes.length === 0 ? (
                     <div className="text-center py-8 sm:py-12 px-4">
                         <BookOpen size={48} className="sm:w-16 sm:h-16 mx-auto text-secondary-400 mb-4" />
-                        <h3 className="text-lg sm:text-xl font-medium text-secondary-900 mb-2">No notes found</h3>
-                        <p className="text-sm sm:text-base text-secondary-600">Try adjusting your search or filter criteria</p>
+                        <h3 className="text-lg sm:text-xl font-medium text-secondary-900 dark:text-text-primary mb-2">No notes found</h3>
+                        <p className="text-sm sm:text-base text-secondary-600 dark:text-text-secondary">Try adjusting your search or filter criteria</p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 px-2 sm:px-0">
                         {filteredNotes.map(note => (
-                            <div key={note.id} className="bg-white rounded-xl shadow-sm border border-secondary-200 hover:shadow-md transition-shadow duration-200">
+                            <div key={note.id} className="bg-white dark:bg-dark-secondary rounded-xl shadow-sm border border-secondary-200 dark:border-border-subtle hover:shadow-md dark:hover:shadow-lg transition-all duration-200">
                                 <div className="p-4 sm:p-6">
                                     <div className="flex justify-between items-start mb-3">
-                                        <span className="inline-block px-2 sm:px-3 py-1 bg-primary-100 text-primary-700 text-xs sm:text-sm font-medium rounded-full">
+                                        <span className="inline-block px-2 sm:px-3 py-1 bg-primary-100 dark:bg-accent-blue/20 text-primary-700 dark:text-accent-blue-hover text-xs sm:text-sm font-medium rounded-full">
                                             {note.subject}
                                         </span>
-                                        <span className="text-xs sm:text-sm text-secondary-500">{note.semester}</span>
+                                        <span className="text-xs sm:text-sm text-secondary-500 dark:text-text-muted">{note.semester}</span>
                                     </div>
 
-                                    <h3 className="text-base sm:text-lg font-semibold text-secondary-900 mb-2 line-clamp-2">
+                                    <h3 className="text-base sm:text-lg font-semibold text-secondary-900 dark:text-text-primary mb-2 line-clamp-2">
                                         {note.title}
                                     </h3>
 
-                                    <p className="text-secondary-600 text-sm mb-4 line-clamp-3">
+                                    <p className="text-secondary-600 dark:text-text-secondary text-sm mb-4 line-clamp-3">
                                         {note.description}
                                     </p>
 

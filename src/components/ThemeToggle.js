@@ -64,7 +64,7 @@ const StyledWrapper = styled.div`
       no-repeat;
     --bb8-diameter: 4.375em;
     --radius: 99em;
-    --transition: 0.4s;
+    --transition: 0.8s ease-in-out;
     --accent: #de7d2f;
     --bb8-bg: #fff;
   }

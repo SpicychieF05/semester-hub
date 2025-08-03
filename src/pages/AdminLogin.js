@@ -197,37 +197,37 @@ const AdminLogin = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+        <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-100 dark:from-dark-primary dark:to-dark-secondary flex flex-col justify-center py-12 sm:px-6 lg:px-8 transition-colors duration-300">
             <div className="sm:mx-auto sm:w-full sm:max-w-md">
                 <div className="text-center">
-                    <div className="mx-auto h-16 w-16 bg-primary-600 rounded-full flex items-center justify-center mb-4">
+                    <div className="mx-auto h-16 w-16 bg-primary-600 dark:bg-accent-blue rounded-full flex items-center justify-center mb-4">
                         <Shield size={32} className="text-white" />
                     </div>
-                    <h2 className="text-3xl font-bold text-secondary-900">
+                    <h2 className="text-3xl font-bold text-secondary-900 dark:text-text-primary">
                         Admin Access
                     </h2>
-                    <p className="mt-2 text-sm text-secondary-600">
+                    <p className="mt-2 text-sm text-secondary-600 dark:text-text-secondary">
                         Sign in with admin credentials to access the dashboard
                     </p>
                 </div>
             </div>
 
             <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-                <div className="bg-white py-8 px-4 shadow-lg rounded-lg sm:px-10 border border-primary-200">
+                <div className="bg-white dark:bg-dark-secondary py-8 px-4 shadow-lg rounded-lg sm:px-10 border border-primary-200 dark:border-border-subtle transition-colors duration-300">
                     {error && (
-                        <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 flex items-center space-x-2">
-                            <AlertCircle size={20} className="text-red-500" />
-                            <span className="text-red-700 text-sm">{error}</span>
+                        <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg p-4 flex items-center space-x-2">
+                            <AlertCircle size={20} className="text-red-500 dark:text-red-400" />
+                            <span className="text-red-700 dark:text-red-300 text-sm">{error}</span>
                         </div>
                     )}
 
                     <form className="space-y-6" onSubmit={handleSubmit}>
                         <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-secondary-700">
+                            <label htmlFor="email" className="block text-sm font-medium text-secondary-700 dark:text-text-primary">
                                 Admin Email
                             </label>
                             <div className="mt-1 relative">
-                                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary-400" size={20} />
+                                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary-400 dark:text-text-muted" size={20} />
                                 <input
                                     id="email"
                                     name="email"
@@ -236,18 +236,18 @@ const AdminLogin = () => {
                                     required
                                     value={formData.email}
                                     onChange={handleInputChange}
-                                    className="pl-10 appearance-none block w-full px-3 py-2 border border-secondary-300 rounded-md placeholder-secondary-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                                    className="pl-10 appearance-none block w-full px-3 py-2 border border-secondary-300 dark:border-border-subtle rounded-md placeholder-secondary-400 dark:placeholder-text-muted focus:outline-none focus:ring-primary-500 dark:focus:ring-accent-blue focus:border-primary-500 dark:focus:border-accent-blue dark:bg-dark-elevated dark:text-text-primary"
                                     placeholder="Enter admin email"
                                 />
                             </div>
                         </div>
 
                         <div>
-                            <label htmlFor="password" className="block text-sm font-medium text-secondary-700">
+                            <label htmlFor="password" className="block text-sm font-medium text-secondary-700 dark:text-text-primary">
                                 Admin Password
                             </label>
                             <div className="mt-1 relative">
-                                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary-400" size={20} />
+                                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary-400 dark:text-text-muted" size={20} />
                                 <input
                                     id="password"
                                     name="password"
@@ -256,12 +256,12 @@ const AdminLogin = () => {
                                     required
                                     value={formData.password}
                                     onChange={handleInputChange}
-                                    className="pl-10 pr-10 appearance-none block w-full px-3 py-2 border border-secondary-300 rounded-md placeholder-secondary-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                                    className="pl-10 pr-10 appearance-none block w-full px-3 py-2 border border-secondary-300 dark:border-border-subtle rounded-md placeholder-secondary-400 dark:placeholder-text-muted focus:outline-none focus:ring-primary-500 dark:focus:ring-accent-blue focus:border-primary-500 dark:focus:border-accent-blue dark:bg-dark-elevated dark:text-text-primary"
                                     placeholder="Enter admin password"
                                 />
                                 <button
                                     type="button"
-                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-secondary-400 hover:text-secondary-600"
+                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-secondary-400 dark:text-text-muted hover:text-secondary-600 dark:hover:text-accent-blue"
                                     onClick={() => setShowPassword(!showPassword)}
                                 >
                                     {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
@@ -273,7 +273,7 @@ const AdminLogin = () => {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 dark:bg-accent-blue hover:bg-primary-700 dark:hover:bg-accent-blue-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 dark:focus:ring-accent-blue disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {loading ? (
                                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
