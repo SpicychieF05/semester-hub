@@ -134,7 +134,7 @@ const Register = () => {
     const passwordStrength = getPasswordStrength(formData.password);
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+        <div className="min-h-screen bg-gray-50 dark:bg-dark-primary flex flex-col justify-center py-12 sm:px-6 lg:px-8 transition-colors duration-300">
             <div className="sm:mx-auto sm:w-full sm:max-w-md">
                 <div className="text-center">
                     <h2 className="text-3xl font-bold text-secondary-900">
@@ -153,20 +153,20 @@ const Register = () => {
             </div>
 
             <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-                <div className="bg-white py-8 px-4 shadow-sm rounded-lg sm:px-10">
+                <div className="bg-white dark:bg-dark-secondary py-8 px-4 shadow-sm rounded-lg sm:px-10 border border-gray-200 dark:border-border-subtle transition-colors duration-300">
                     {/* Info banner */}
-                    <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start space-x-2">
-                        <AlertCircle size={20} className="text-blue-500 mt-0.5" />
-                        <div className="text-blue-700 text-sm">
+                    <div className="mb-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4 flex items-start space-x-2">
+                        <AlertCircle size={20} className="text-blue-500 dark:text-blue-400 mt-0.5" />
+                        <div className="text-blue-700 dark:text-blue-300 text-sm">
                             <p className="font-medium mb-1">Email Confirmation Required</p>
                             <p>After registration, you'll receive a confirmation email. Please click the link in the email before trying to sign in.</p>
                         </div>
                     </div>
 
                     {error && (
-                        <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 flex items-center space-x-2">
-                            <AlertCircle size={20} className="text-red-500" />
-                            <span className="text-red-700 text-sm">{error}</span>
+                        <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg p-4 flex items-center space-x-2">
+                            <AlertCircle size={20} className="text-red-500 dark:text-red-400" />
+                            <span className="text-red-700 dark:text-red-300 text-sm">{error}</span>
                         </div>
                     )}
 
