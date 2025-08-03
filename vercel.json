@@ -31,12 +31,23 @@
         {
             "src": "/manifest.json",
             "headers": {
-                "cache-control": "public, max-age=0, must-revalidate"
+                "cache-control": "public, max-age=86400"
+            }
+        },
+        {
+            "src": "/robots.txt",
+            "headers": {
+                "cache-control": "public, max-age=86400"
             }
         },
         {
             "src": "/(.*)",
             "dest": "/index.html"
         }
-    ]
+    ],
+    "functions": {
+        "src/pages/**/*.js": {
+            "maxDuration": 10
+        }
+    }
 }
