@@ -402,7 +402,7 @@ This project was inspired by the need for a secure, modern, and user-friendly pl
 
 ---
 
-*Last updated: July 2025*
+*Last updated: August 2025*
 
 </div>
 
