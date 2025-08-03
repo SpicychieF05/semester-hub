@@ -149,37 +149,97 @@ Semester Hub is a modern, secure, and feature-rich platform designed for student
 
 ```
 semester-hub/
-├── 📁 public/
-│   ├── 🖼️ images/
-│   │   ├── hero-image.gif      # Hero section animation
-│   │   └── sm-logo.png         # Brand logo
-│   ├── index.html              # HTML template
-│   ├── manifest.json          # PWA manifest
-│   └── robots.txt             # SEO robots file
-├── 📁 src/
-│   ├── 📁 components/          # Reusable UI components
-│   │   ├── Footer.js          # Site footer with contact modal
-│   │   ├── LoadingScreen.js   # Initial loading animation
-│   │   ├── LoadingSpinner.js  # Loading indicators
-│   │   ├── Navbar.js          # Navigation header
-│   │   └── ProtectedAdminRoute.js  # Admin route protection
-│   ├── 📁 pages/              # Main application pages
-│   │   ├── AdminDashboard.js  # Complete admin management
-│   │   ├── AdminLogin.js      # Admin authentication
-│   │   ├── AdminSetup.js      # Admin account creation
-│   │   ├── BrowseNotes.js     # Notes browsing and search
-│   │   ├── HomePage.js        # Landing page
-│   │   ├── Login.js           # User authentication
-│   │   ├── NoteDetail.js      # Individual note view
-│   │   ├── Register.js        # User registration
-│   │   └── ShareNotes.js      # Note upload functionality
-│   ├── App.js                 # Main application component
-│   ├── index.js              # Application entry point
-│   ├── index.css             # Global styles
-│   └── supabase.js           # Supabase client & auth helpers
-├── package.json              # Dependencies and scripts
-├── tailwind.config.js        # Tailwind CSS configuration
-└── README.md                 # Project documentation
+├── .env.example                    # Environment variables template
+├── .gitignore                      # Git ignore rules
+├── .nvmrc                          # Node.js version specification (18.17.0)
+├── .vercel-trigger                 # Vercel deployment trigger
+├── .vercelignore                   # Vercel ignore rules
+├── deploy.sh                       # Deployment script
+├── LICENSE                         # Project license
+├── package-lock.json              # NPM dependency lock file
+├── package.json                   # NPM package configuration
+├── postcss.config.js              # PostCSS configuration
+├── README.md                      # Project documentation
+├── tailwind.config.js             # Tailwind CSS configuration
+├── vercel.json                    # Vercel deployment configuration
+│
+├── build/                         # Production build output
+│   ├── asset-manifest.json        # Asset manifest for build
+│   ├── index.html                 # Built HTML entry point
+│   ├── manifest.json              # PWA manifest
+│   ├── robots.txt                 # Search engine crawling rules
+│   ├── _redirects                 # URL redirect rules
+│   ├── images/                    # Optimized images
+│   │   ├── favicon.png
+│   │   ├── hero-image.gif
+│   │   └── sm-logo.png
+│   └── static/                    # Static assets
+│       ├── css/                   # Compiled CSS
+│       │   ├── main.d377dc3e.css
+│       │   └── main.d377dc3e.css.map
+│       └── js/                    # Compiled JavaScript
+│           ├── main.72cb0f4a.js
+│           ├── main.72cb0f4a.js.LICENSE.txt
+│           └── main.72cb0f4a.js.map
+│
+├── node_modules/                  # NPM dependencies (extensive)
+│   ├── .bin/                      # Executable binaries
+│   ├── .cache/                    # Build cache files
+│   │   ├── .eslintcache
+│   │   └── babel-loader/          # Babel compilation cache
+│   └── [1000+ dependency packages...]
+│
+├── public/                        # Public static assets
+│   ├── index.html                 # HTML template
+│   ├── manifest.json              # PWA manifest
+│   ├── robots.txt                 # SEO robots file
+│   ├── _redirects                 # Netlify/hosting redirects
+│   └── images/                    # Static images
+│       ├── favicon.png            # Site favicon
+│       ├── hero-image.gif         # Main hero animation
+│       └── sm-logo.png            # Site logo
+│
+└── src/                           # Source code
+    ├── App.js                     # Main React application component
+    ├── index.css                  # Global styles
+    ├── index.js                   # Application entry point
+    ├── supabase.js                # Supabase client configuration
+    │
+    ├── components/                # Reusable React components
+    │   ├── AuthCallback.js        # OAuth callback handler
+    │   ├── BugReportModal.js      # Bug reporting modal
+    │   ├── ErrorBoundary.js       # Error boundary wrapper
+    │   ├── Footer.js              # Site footer
+    │   ├── LoadingScreen.js       # Full-screen loader
+    │   ├── LoadingSpinner.js      # Spinner component
+    │   ├── Modal.js               # Generic modal component
+    │   ├── Navbar.js              # Navigation bar
+    │   ├── PrivacyPolicyModal.js  # Privacy policy modal
+    │   ├── ProtectedAdminRoute.js # Admin route protection
+    │   ├── TermsOfServiceModal.js # Terms of service modal
+    │   ├── ThemeToggle.js         # Dark/light theme toggle
+    │   └── ToastContainer.js      # Toast notifications
+    │
+    ├── context/                   # React Context providers
+    │   ├── AppContext.js          # Global application state
+    │   └── ThemeContext.js        # Theme management context
+    │
+    ├── hooks/                     # Custom React hooks
+    │   └── useVantaGlobe.js       # 3D globe animation hook
+    │
+    ├── pages/                     # Page components
+    │   ├── AdminDashboard.js      # Admin management interface
+    │   ├── AdminLogin.js          # Admin authentication
+    │   ├── AdminSetup.js          # Initial admin setup
+    │   ├── BrowseNotes.js         # Browse/search notes
+    │   ├── HomePage.js            # Landing page
+    │   ├── Login.js               # User login
+    │   ├── NoteDetail.js          # Individual note view
+    │   ├── Register.js            # User registration
+    │   └── ShareNotes.js          # Note sharing interface
+    │
+    └── services/                  # API and service layers
+        └── supabaseService.js     # Supabase database operations
 ```
 
 ---
