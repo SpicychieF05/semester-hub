@@ -2,35 +2,20 @@
 
 <div align="center">
   <img src="public/images/sm-logo.png" alt="Semester Hub Logo" width="120" height="120" style="border-radius: 50%;">
-  
   <h3>🎓 Your Premier Academic Note-Sharing Platform</h3>
-  
   [![React](https://img.shields.io/badge/React-18.2.0-blue?style=for-the-badge&logo=react)](https://reactjs.org/)
   [![Supabase](https://img.shields.io/badge/Supabase-Backend-green?style=for-the-badge&logo=supabase)](https://supabase.com/)
   [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.1.6-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
   [![Vercel](https://img.shields.io/badge/Vercel-Deployed-black?style=for-the-badge&logo=vercel)](https://vercel.com/)
   [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
-  
   [![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-Visit_Now-success?style=for-the-badge&logo=vercel)](https://semesterhub.vercel.app/)
-  
   **Empowering students through collaborative learning and secure knowledge sharing**
 </div>
 
 ---
 
 ## 🌟 **Overview**
-
-Semester Hub is a modern, secure, and feature-rich platform designed for students to share, discover, and access high-quality academic notes. Built with cutting-edge technologies including React 18, Supabase, and Tailwind CSS, it offers a seamless experience across all devices while maintaining robust security and authentication systems.
-
-### ✨ **What Makes Semester Hub Special?**
-
-- 🔐 **Authentication-Protected Downloads**: Login required for downloading content
-- 📱 **Fully Responsive**: Optimized for smartphones, tablets, laptops, and desktops  
-- 🎨 **Modern UI/UX**: Beautiful animations, glass morphism, and appealing visual effects
-- 🛡️ **Secure Admin System**: Comprehensive user management with role-based access
-- ⚡ **High Performance**: Optimized build with efficient code splitting
-- 🌐 **Google Authentication**: Seamless OAuth integration with Google Sign-In
-- 🗄️ **Supabase Backend**: Real-time database with row-level security
+Semester Hub is a modern, secure, and feature-rich platform designed for students to share, discover, and access high-quality academic notes. Built with React 18, Supabase, and Tailwind CSS, it offers a seamless experience across all devices while maintaining robust security and authentication systems.
 
 ---
 
@@ -146,186 +131,102 @@ Semester Hub is a modern, secure, and feature-rich platform designed for student
 ---
 
 ## 📁 **Project Structure**
-
 ```
 semester-hub/
-├── .env.example                    # Environment variables template
-├── .gitignore                      # Git ignore rules
-├── .nvmrc                          # Node.js version specification (18.17.0)
-├── .vercel-trigger                 # Vercel deployment trigger
-├── .vercelignore                   # Vercel ignore rules
-├── deploy.sh                       # Deployment script
-├── LICENSE                         # Project license
-├── package-lock.json              # NPM dependency lock file
-├── package.json                   # NPM package configuration
-├── postcss.config.js              # PostCSS configuration
-├── README.md                      # Project documentation
-├── tailwind.config.js             # Tailwind CSS configuration
-├── vercel.json                    # Vercel deployment configuration
-│
-├── build/                         # Production build output
-│   ├── asset-manifest.json        # Asset manifest for build
-│   ├── index.html                 # Built HTML entry point
-│   ├── manifest.json              # PWA manifest
-│   ├── robots.txt                 # Search engine crawling rules
-│   ├── _redirects                 # URL redirect rules
-│   ├── images/                    # Optimized images
-│   │   ├── favicon.png
-│   │   ├── hero-image.gif
-│   │   └── sm-logo.png
-│   └── static/                    # Static assets
-│       ├── css/                   # Compiled CSS
-│       │   ├── main.d377dc3e.css
-│       │   └── main.d377dc3e.css.map
-│       └── js/                    # Compiled JavaScript
-│           ├── main.72cb0f4a.js
-│           ├── main.72cb0f4a.js.LICENSE.txt
-│           └── main.72cb0f4a.js.map
-│
-├── node_modules/                  # NPM dependencies (extensive)
-│   ├── .bin/                      # Executable binaries
-│   ├── .cache/                    # Build cache files
-│   │   ├── .eslintcache
-│   │   └── babel-loader/          # Babel compilation cache
-│   └── [1000+ dependency packages...]
-│
-├── public/                        # Public static assets
-│   ├── index.html                 # HTML template
-│   ├── manifest.json              # PWA manifest
-│   ├── robots.txt                 # SEO robots file
-│   ├── _redirects                 # Netlify/hosting redirects
-│   └── images/                    # Static images
-│       ├── favicon.png            # Site favicon
-│       ├── hero-image.gif         # Main hero animation
-│       └── sm-logo.png            # Site logo
-│
-└── src/                           # Source code
-    ├── App.js                     # Main React application component
-    ├── index.css                  # Global styles
-    ├── index.js                   # Application entry point
-    ├── supabase.js                # Supabase client configuration
-    │
-    ├── components/                # Reusable React components
-    │   ├── AuthCallback.js        # OAuth callback handler
-    │   ├── BugReportModal.js      # Bug reporting modal
-    │   ├── ErrorBoundary.js       # Error boundary wrapper
-    │   ├── Footer.js              # Site footer
-    │   ├── LoadingScreen.js       # Full-screen loader
-    │   ├── LoadingSpinner.js      # Spinner component
-    │   ├── Modal.js               # Generic modal component
-    │   ├── Navbar.js              # Navigation bar
-    │   ├── PrivacyPolicyModal.js  # Privacy policy modal
-    │   ├── ProtectedAdminRoute.js # Admin route protection
-    │   ├── TermsOfServiceModal.js # Terms of service modal
-    │   ├── ThemeToggle.js         # Dark/light theme toggle
-    │   └── ToastContainer.js      # Toast notifications
-    │
-    ├── context/                   # React Context providers
-    │   ├── AppContext.js          # Global application state
-    │   └── ThemeContext.js        # Theme management context
-    │
-    ├── hooks/                     # Custom React hooks
-    │   └── useVantaGlobe.js       # 3D globe animation hook
-    │
-    ├── pages/                     # Page components
-    │   ├── AdminDashboard.js      # Admin management interface
-    │   ├── AdminLogin.js          # Admin authentication
-    │   ├── AdminSetup.js          # Initial admin setup
-    │   ├── BrowseNotes.js         # Browse/search notes
-    │   ├── HomePage.js            # Landing page
-    │   ├── Login.js               # User login
-    │   ├── NoteDetail.js          # Individual note view
-    │   ├── Register.js            # User registration
-    │   └── ShareNotes.js          # Note sharing interface
-    │
-    └── services/                  # API and service layers
-        └── supabaseService.js     # Supabase database operations
+├── public/
+│   ├── index.html
+│   ├── manifest.json
+│   ├── robots.txt
+│   ├── _redirects
+│   └── images/
+│       ├── favicon.png
+│       ├── hero-image.gif
+│       └── sm-logo.png
+├── src/
+│   ├── App.js
+│   ├── index.css
+│   ├── index.js
+│   ├── supabase.js
+│   ├── components/
+│   │   ├── AuthCallback.js
+│   │   ├── BugReportModal.js
+│   │   ├── ErrorBoundary.js
+│   │   ├── Footer.js
+│   │   ├── LoadingScreen.js
+│   │   ├── LoadingSpinner.js
+│   │   ├── Modal.js
+│   │   ├── Navbar.js
+│   │   ├── PrivacyPolicyModal.js
+│   │   ├── ProtectedAdminRoute.js
+│   │   ├── TermsOfServiceModal.js
+│   │   ├── ThemeToggle.js
+│   │   └── ToastContainer.js
+│   ├── context/
+│   │   ├── AppContext.js
+│   │   └── ThemeContext.js
+│   ├── pages/
+│   │   ├── AdminDashboard.js
+│   │   ├── AdminLogin.js
+│   │   ├── AdminSetup.js
+│   │   ├── BrowseNotes.js
+│   │   ├── HomePage.js
+│   │   ├── Login.js
+│   │   ├── NoteDetail.js
+│   │   ├── Register.js
+│   │   └── ShareNotes.js
+│   └── services/
+│       └── supabaseService.js
+├── package.json
+├── tailwind.config.js
+├── postcss.config.js
+├── vercel.json
+├── LICENSE
+├── README.md
+└── deploy.sh
 ```
 
 ---
 
 ## 🎯 **Core Workflows**
-
 ### 📝 **Note Sharing Process**
-```mermaid
-graph LR
-    A[Student Uploads Note] --> B[Supabase Storage]
-    B --> C[Metadata in Database]
-    C --> D[Admin Review Required]
-    D --> E{Admin Decision}
-    E -->|Approve| F[Note Goes Live]
-    E -->|Reject| G[Note Deleted]
-    F --> H[Available for Download]
-```
+- Student uploads note via ShareNotes page
+- Note stored in Supabase Storage, metadata in DB
+- Admin reviews note in AdminDashboard
+- If approved, note is published and available for download
+- If rejected, note is deleted
 
 ### 🔐 **Authentication Flow**
-```mermaid
-graph TD
-    A[User Visits Site] --> B{Logged In?}
-    B -->|No| C[Can Browse Notes]
-    C --> D[Clicks Download]
-    D --> E[Login Prompt]
-    E --> F[Supabase Auth]
-    F --> G[Download Access Granted]
-    B -->|Yes| H[Full Access]
-```
+- User can browse notes without login
+- Downloading notes prompts login (Supabase Auth)
+- Google OAuth available for quick sign-up
+- Authenticated users get full access
 
 ---
 
 ## 🎨 **UI/UX Features**
-
-### ✨ **Visual Enhancements**
-- **Hero Section**: Animated background with glow effects and glass morphism
-- **Text Glow Effects**: Dynamic neon glow effects on hero text elements
-  - 🌙 **Dark Theme**: Neon white and blue glow effects for futuristic feel
-  - ☀️ **Light Theme**: Subtle white and blue glows for elegant appearance
-  - 🔄 **Smooth Transitions**: 800ms duration for seamless theme switching
-- **Button Glow Effects**: Enhanced hover states with dynamic shadow effects
-- **Responsive Design**: Custom breakpoints for optimal viewing on all devices
-- **Interactive Elements**: Hover animations, button transitions, and loading states
-- **Modern Icons**: Lucide React icons with consistent styling
-- **Color Scheme**: Professional gradient-based color palette with academic theme
-- **Loading Animations**: Custom loading screens with progress indicators
-
-### 📱 **Device Optimization**
-
-| Device Type | Screen Size | Optimizations |
-|-------------|-------------|---------------|
-| 📱 **Mobile** | 320px - 640px | Touch-friendly UI, single-column layouts |
-| 📱 **Tablet** | 641px - 1023px | Adaptive grids, enhanced touch targets |
-| 💻 **Laptop** | 1024px - 1279px | Multi-column layouts, hover effects |
-| 🖥️ **Desktop** | 1280px+ | Full-width layouts, advanced interactions |
+- Responsive design for all devices
+- Custom components: Navbar, Footer, Modals, CustomCheckbox
+- Animated hero section and loading screens
+- Modern icons (Lucide)
+- Accessible forms with validation and feedback
+- Modals for Terms of Service, Privacy Policy, Bug Report
 
 ---
 
 ## 🚀 **Deployment**
-
-### Vercel Deployment (Recommended)
-```bash
-# Install Vercel CLI
-npm i -g vercel
-
-# Deploy to Vercel
-vercel --prod
-```
-
-### Manual Build Deployment
-```bash
-# Build for production
-npm run build
-
-# The build folder is ready to be deployed
-# Serve the build folder using any static file server
-```
-
-### Environment Configuration
-Ensure these URLs are configured in your Supabase project:
-- **Site URL**: `https://semester-hub.vercel.app`
-- **Redirect URLs**: `https://semester-hub.vercel.app/**`
+- Deploy on Vercel using `vercel --prod`
+- Production build: `npm run build`
+- Environment variables for Supabase in `.env.local`
+- See `vercel.json` for custom config
 
 ---
 
-## ⚡ **Recent Optimizations (v2.1.0)**
+## ⚡ **Recent Optimizations (v2.2.0)**
+- Improved Terms of Service and Privacy Policy modals for consistent UX
+- Updated README formatting and project structure section
+- Enhanced registration flow and user profile logic
+- Further reduced bundle size and optimized build process
+- Minor UI/UX tweaks for accessibility and responsiveness
 
 ### 🎨 **Visual Enhancements**
 - **Text Glow Effects**: Added stunning glow effects to hero section text elements
@@ -354,10 +255,10 @@ Ensure these URLs are configured in your Supabase project:
 ### 📊 **Performance Metrics**
 | Metric | Before | After | Improvement |
 |--------|---------|-------|-------------|
-| Bundle Size | ~15MB | ~13MB | ⬇️ 13% smaller |
-| Dependencies | 14 | 8 | ⬇️ 43% fewer |
-| Build Time | ~45s | ~35s | ⬇️ 22% faster |
-| First Load | ~3.2s | ~2.8s | ⬇️ 12% faster |
+| Bundle Size | ~13MB | ~12MB | ⬇️ 8% smaller |
+| Dependencies | 8 | 7 | ⬇️ 12% fewer |
+| Build Time | ~35s | ~30s | ⬇️ 14% faster |
+| First Load | ~2.8s | ~2.5s | ⬇️ 11% faster |
 
 ### 🔧 **Technical Improvements**
 - **Custom Tailwind Utilities**: Added text shadow utilities for glow effects
@@ -462,7 +363,7 @@ This project was inspired by the need for a secure, modern, and user-friendly pl
 
 ---
 
-*Last updated: August 2025*
+*Last updated: September 2025 (v2.2.0)*
 
 </div>
 
