@@ -678,25 +678,25 @@ const AdminDashboard = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-dark-primary transition-colors duration-300">
+        <div className="min-h-screen bg-gray-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Header */}
                 <div className="mb-8 flex justify-between items-center">
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900 dark:text-text-primary">Admin Dashboard</h1>
-                        <p className="text-gray-600 dark:text-text-secondary mt-2">Manage platform content, users, and notes</p>
+                        <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+                        <p className="text-gray-600 mt-2">Manage platform content, users, and notes</p>
                     </div>
                     <div className="flex items-center space-x-4">
                         <button
                             onClick={fetchData}
                             disabled={loading}
-                            className="flex items-center space-x-2 px-3 py-2 bg-blue-600 dark:bg-accent-blue text-white rounded-lg hover:bg-blue-700 dark:hover:bg-accent-blue-hover transition-colors disabled:opacity-50"
+                            className="flex items-center space-x-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
                         >
                             <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
                             <span>Refresh</span>
                         </button>
                         {lastRefresh && (
-                            <div className="text-xs text-gray-500 dark:text-text-muted">
+                            <div className="text-xs text-gray-500">
                                 Last updated: {lastRefresh.toLocaleTimeString()}
                             </div>
                         )}
@@ -722,50 +722,50 @@ const AdminDashboard = () => {
 
                 {/* Stats Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    <div className="bg-white dark:bg-dark-secondary rounded-lg shadow-sm p-6 border border-gray-200 dark:border-border-subtle transition-colors duration-300">
+                    <div className="bg-white rounded-lg shadow-sm p-6">
                         <div className="flex items-center">
-                            <div className="p-2 bg-blue-100 dark:bg-accent-blue/20 rounded-lg">
-                                <BookOpen className="h-6 w-6 text-blue-600 dark:text-accent-blue" />
+                            <div className="p-2 bg-blue-100 rounded-lg">
+                                <BookOpen className="h-6 w-6 text-blue-600" />
                             </div>
                             <div className="ml-4">
-                                <h3 className="text-sm font-medium text-gray-500 dark:text-text-secondary">Total Notes</h3>
-                                <p className="text-2xl font-bold text-gray-900 dark:text-text-primary">{stats.totalNotes}</p>
+                                <h3 className="text-sm font-medium text-gray-500">Total Notes</h3>
+                                <p className="text-2xl font-bold text-gray-900">{stats.totalNotes}</p>
                             </div>
                         </div>
                     </div>
 
-                    <div className="bg-white dark:bg-dark-secondary rounded-lg shadow-sm p-6 border border-gray-200 dark:border-border-subtle transition-colors duration-300">
+                    <div className="bg-white rounded-lg shadow-sm p-6">
                         <div className="flex items-center">
-                            <div className="p-2 bg-yellow-100 dark:bg-yellow-900/20 rounded-lg">
-                                <Clock className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
+                            <div className="p-2 bg-yellow-100 rounded-lg">
+                                <Clock className="h-6 w-6 text-yellow-600" />
                             </div>
                             <div className="ml-4">
-                                <h3 className="text-sm font-medium text-gray-500 dark:text-text-secondary">Pending Review</h3>
-                                <p className="text-2xl font-bold text-gray-900 dark:text-text-primary">{stats.pendingReview}</p>
+                                <h3 className="text-sm font-medium text-gray-500">Pending Review</h3>
+                                <p className="text-2xl font-bold text-gray-900">{stats.pendingReview}</p>
                             </div>
                         </div>
                     </div>
 
-                    <div className="bg-white dark:bg-dark-secondary rounded-lg shadow-sm p-6 border border-gray-200 dark:border-border-subtle transition-colors duration-300">
+                    <div className="bg-white rounded-lg shadow-sm p-6">
                         <div className="flex items-center">
-                            <div className="p-2 bg-green-100 dark:bg-green-900/20 rounded-lg">
-                                <Users className="h-6 w-6 text-green-600 dark:text-green-400" />
+                            <div className="p-2 bg-green-100 rounded-lg">
+                                <Users className="h-6 w-6 text-green-600" />
                             </div>
                             <div className="ml-4">
-                                <h3 className="text-sm font-medium text-gray-500 dark:text-text-secondary">Total Users</h3>
-                                <p className="text-2xl font-bold text-gray-900 dark:text-text-primary">{stats.totalUsers}</p>
+                                <h3 className="text-sm font-medium text-gray-500">Total Users</h3>
+                                <p className="text-2xl font-bold text-gray-900">{stats.totalUsers}</p>
                             </div>
                         </div>
                     </div>
 
-                    <div className="bg-white dark:bg-dark-secondary rounded-lg shadow-sm p-6 border border-gray-200 dark:border-border-subtle transition-colors duration-300">
+                    <div className="bg-white rounded-lg shadow-sm p-6">
                         <div className="flex items-center">
-                            <div className="p-2 bg-purple-100 dark:bg-purple-900/20 rounded-lg">
-                                <Download className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                            <div className="p-2 bg-purple-100 rounded-lg">
+                                <Download className="h-6 w-6 text-purple-600" />
                             </div>
                             <div className="ml-4">
-                                <h3 className="text-sm font-medium text-gray-500 dark:text-text-secondary">Downloads</h3>
-                                <p className="text-2xl font-bold text-gray-900 dark:text-text-primary">{stats.totalDownloads}</p>
+                                <h3 className="text-sm font-medium text-gray-500">Downloads</h3>
+                                <p className="text-2xl font-bold text-gray-900">{stats.totalDownloads}</p>
                             </div>
                         </div>
                     </div>
@@ -773,13 +773,13 @@ const AdminDashboard = () => {
 
                 {/* Tab Navigation */}
                 <div className="mb-8">
-                    <div className="border-b border-gray-200 dark:border-border-subtle">
+                    <div className="border-b border-gray-200">
                         <nav className="-mb-px flex space-x-8">
                             <button
                                 onClick={() => setActiveTab('content')}
                                 className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'content'
-                                    ? 'border-blue-500 dark:border-accent-blue text-blue-600 dark:text-accent-blue'
-                                    : 'border-transparent text-gray-500 dark:text-text-secondary hover:text-gray-700 dark:hover:text-text-primary hover:border-gray-300 dark:hover:border-border-subtle'
+                                    ? 'border-blue-500 text-blue-600'
+                                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                                     }`}
                             >
                                 Content Management
@@ -787,8 +787,8 @@ const AdminDashboard = () => {
                             <button
                                 onClick={() => setActiveTab('users')}
                                 className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'users'
-                                    ? 'border-blue-500 dark:border-accent-blue text-blue-600 dark:text-accent-blue'
-                                    : 'border-transparent text-gray-500 dark:text-text-secondary hover:text-gray-700 dark:hover:text-text-primary hover:border-gray-300 dark:hover:border-border-subtle'
+                                    ? 'border-blue-500 text-blue-600'
+                                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                                     }`}
                             >
                                 User Management
@@ -796,8 +796,8 @@ const AdminDashboard = () => {
                             <button
                                 onClick={() => setActiveTab('notes')}
                                 className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'notes'
-                                    ? 'border-blue-500 dark:border-accent-blue text-blue-600 dark:text-accent-blue'
-                                    : 'border-transparent text-gray-500 dark:text-text-secondary hover:text-gray-700 dark:hover:text-text-primary hover:border-gray-300 dark:hover:border-border-subtle'
+                                    ? 'border-blue-500 text-blue-600'
+                                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                                     }`}
                             >
                                 Notes Management
@@ -816,15 +816,15 @@ const AdminDashboard = () => {
                 </div>
 
                 {/* Tab Content */}
-                <div className="bg-white dark:bg-dark-secondary rounded-lg shadow-sm border border-gray-200 dark:border-border-subtle transition-colors duration-300">
+                <div className="bg-white rounded-lg shadow-sm">
                     {/* Content Management Tab */}
                     {activeTab === 'content' && (
                         <div className="p-6">
-                            <h2 className="text-xl font-semibold text-gray-900 dark:text-text-primary mb-6">Content Management</h2>
+                            <h2 className="text-xl font-semibold text-gray-900 mb-6">Content Management</h2>
 
                             {/* Content Subtabs */}
                             <div className="mb-6">
-                                <div className="border-b border-gray-200 dark:border-border-subtle">
+                                <div className="border-b border-gray-200">
                                     <nav className="-mb-px flex space-x-8">
                                         <button
                                             onClick={() => setActiveContentTab('departments')}
@@ -1171,12 +1171,12 @@ const AdminDashboard = () => {
                 {/* Add Department Modal */}
                 {showAddDepartmentModal && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                        <div className="bg-white dark:bg-dark-secondary rounded-lg p-6 w-full max-w-md border border-gray-200 dark:border-border-subtle transition-colors duration-300">
+                        <div className="bg-white rounded-lg p-6 w-full max-w-md">
                             <div className="flex justify-between items-center mb-4">
-                                <h3 className="text-lg font-semibold text-gray-900 dark:text-text-primary">Add Department</h3>
+                                <h3 className="text-lg font-semibold text-gray-900">Add Department</h3>
                                 <button
                                     onClick={() => setShowAddDepartmentModal(false)}
-                                    className="text-gray-400 dark:text-text-muted hover:text-gray-600 dark:hover:text-accent-blue"
+                                    className="text-gray-400 hover:text-gray-600"
                                 >
                                     <X size={20} />
                                 </button>
@@ -1184,39 +1184,39 @@ const AdminDashboard = () => {
 
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-text-secondary mb-1">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
                                         Department Name *
                                     </label>
                                     <input
                                         type="text"
                                         value={newDepartment.name}
                                         onChange={(e) => setNewDepartment({ ...newDepartment, name: e.target.value })}
-                                        className="w-full p-3 border border-gray-300 dark:border-border-subtle rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-accent-blue focus:border-transparent bg-white dark:bg-dark-elevated text-gray-900 dark:text-text-primary placeholder-gray-500 dark:placeholder-text-muted transition-colors duration-300"
+                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                         placeholder="Enter department name"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-text-secondary mb-1">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
                                         Department Code *
                                     </label>
                                     <input
                                         type="text"
                                         value={newDepartment.code}
                                         onChange={(e) => setNewDepartment({ ...newDepartment, code: e.target.value })}
-                                        className="w-full p-3 border border-gray-300 dark:border-border-subtle rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-accent-blue focus:border-transparent bg-white dark:bg-dark-elevated text-gray-900 dark:text-text-primary placeholder-gray-500 dark:placeholder-text-muted transition-colors duration-300"
+                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                         placeholder="Enter department code"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-text-secondary mb-1">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
                                         Description
                                     </label>
                                     <textarea
                                         value={newDepartment.description}
                                         onChange={(e) => setNewDepartment({ ...newDepartment, description: e.target.value })}
-                                        className="w-full p-3 border border-gray-300 dark:border-border-subtle rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-accent-blue focus:border-transparent bg-white dark:bg-dark-elevated text-gray-900 dark:text-text-primary placeholder-gray-500 dark:placeholder-text-muted transition-colors duration-300"
+                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                         placeholder="Enter department description"
                                         rows={3}
                                     />
@@ -1226,13 +1226,13 @@ const AdminDashboard = () => {
                             <div className="flex justify-end space-x-3 mt-6">
                                 <button
                                     onClick={() => setShowAddDepartmentModal(false)}
-                                    className="px-4 py-2 text-gray-600 dark:text-text-secondary bg-gray-100 dark:bg-dark-elevated hover:bg-gray-200 dark:hover:bg-glass-subtle rounded-lg transition-colors"
+                                    className="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     onClick={handleAddDepartment}
-                                    className="px-4 py-2 bg-blue-600 dark:bg-accent-blue hover:bg-blue-700 dark:hover:bg-blue-700 text-white rounded-lg transition-colors"
+                                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
                                 >
                                     Add Department
                                 </button>
@@ -1244,12 +1244,12 @@ const AdminDashboard = () => {
                 {/* Add Subject Modal */}
                 {showAddSubjectModal && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                        <div className="bg-white dark:bg-dark-secondary rounded-lg p-6 w-full max-w-md border border-gray-200 dark:border-border-subtle transition-colors duration-300">
+                        <div className="bg-white rounded-lg p-6 w-full max-w-md">
                             <div className="flex justify-between items-center mb-4">
-                                <h3 className="text-lg font-semibold text-gray-900 dark:text-text-primary">Add Subject</h3>
+                                <h3 className="text-lg font-semibold text-gray-900">Add Subject</h3>
                                 <button
                                     onClick={() => setShowAddSubjectModal(false)}
-                                    className="text-gray-400 dark:text-text-muted hover:text-gray-600 dark:hover:text-accent-blue"
+                                    className="text-gray-400 hover:text-gray-600"
                                 >
                                     <X size={20} />
                                 </button>
@@ -1257,39 +1257,39 @@ const AdminDashboard = () => {
 
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-text-secondary mb-1">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
                                         Subject Name *
                                     </label>
                                     <input
                                         type="text"
                                         value={newSubject.name}
                                         onChange={(e) => setNewSubject({ ...newSubject, name: e.target.value })}
-                                        className="w-full p-3 border border-gray-300 dark:border-border-subtle rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-accent-blue focus:border-transparent bg-white dark:bg-dark-elevated text-gray-900 dark:text-text-primary placeholder-gray-500 dark:placeholder-text-muted transition-colors duration-300"
+                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                         placeholder="Enter subject name"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-text-secondary mb-1">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
                                         Subject Code *
                                     </label>
                                     <input
                                         type="text"
                                         value={newSubject.code}
                                         onChange={(e) => setNewSubject({ ...newSubject, code: e.target.value })}
-                                        className="w-full p-3 border border-gray-300 dark:border-border-subtle rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-accent-blue focus:border-transparent bg-white dark:bg-dark-elevated text-gray-900 dark:text-text-primary placeholder-gray-500 dark:placeholder-text-muted transition-colors duration-300"
+                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                         placeholder="Enter subject code"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-text-secondary mb-1">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
                                         Department
                                     </label>
                                     <select
                                         value={newSubject.department_id}
                                         onChange={(e) => setNewSubject({ ...newSubject, department_id: e.target.value })}
-                                        className="w-full p-3 border border-gray-300 dark:border-border-subtle rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-accent-blue focus:border-transparent bg-white dark:bg-dark-elevated text-gray-900 dark:text-text-primary transition-colors duration-300"
+                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     >
                                         <option value="">Select Department</option>
                                         {departments.map(dept => (
@@ -1299,13 +1299,13 @@ const AdminDashboard = () => {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-text-secondary mb-1">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
                                         Description
                                     </label>
                                     <textarea
                                         value={newSubject.description}
                                         onChange={(e) => setNewSubject({ ...newSubject, description: e.target.value })}
-                                        className="w-full p-3 border border-gray-300 dark:border-border-subtle rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-accent-blue focus:border-transparent bg-white dark:bg-dark-elevated text-gray-900 dark:text-text-primary placeholder-gray-500 dark:placeholder-text-muted transition-colors duration-300"
+                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                         placeholder="Enter subject description"
                                         rows={3}
                                     />
@@ -1315,13 +1315,13 @@ const AdminDashboard = () => {
                             <div className="flex justify-end space-x-3 mt-6">
                                 <button
                                     onClick={() => setShowAddSubjectModal(false)}
-                                    className="px-4 py-2 text-gray-600 dark:text-text-secondary bg-gray-100 dark:bg-dark-elevated hover:bg-gray-200 dark:hover:bg-glass-subtle rounded-lg transition-colors"
+                                    className="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     onClick={handleAddSubject}
-                                    className="px-4 py-2 bg-blue-600 dark:bg-accent-blue hover:bg-blue-700 dark:hover:bg-blue-700 text-white rounded-lg transition-colors"
+                                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
                                 >
                                     Add Subject
                                 </button>
@@ -1333,12 +1333,12 @@ const AdminDashboard = () => {
                 {/* Add Semester Modal */}
                 {showAddSemesterModal && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                        <div className="bg-white dark:bg-dark-secondary rounded-lg p-6 w-full max-w-md border border-gray-200 dark:border-border-subtle transition-colors duration-300">
+                        <div className="bg-white rounded-lg p-6 w-full max-w-md">
                             <div className="flex justify-between items-center mb-4">
-                                <h3 className="text-lg font-semibold text-gray-900 dark:text-text-primary">Add Semester</h3>
+                                <h3 className="text-lg font-semibold text-gray-900">Add Semester</h3>
                                 <button
                                     onClick={() => setShowAddSemesterModal(false)}
-                                    className="text-gray-400 dark:text-text-muted hover:text-gray-600 dark:hover:text-accent-blue"
+                                    className="text-gray-400 hover:text-gray-600"
                                 >
                                     <X size={20} />
                                 </button>
@@ -1346,7 +1346,7 @@ const AdminDashboard = () => {
 
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-text-secondary mb-1">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
                                         Semester Number *
                                     </label>
                                     <input
@@ -1355,20 +1355,20 @@ const AdminDashboard = () => {
                                         max="10"
                                         value={newSemester.number}
                                         onChange={(e) => setNewSemester({ ...newSemester, number: parseInt(e.target.value) })}
-                                        className="w-full p-3 border border-gray-300 dark:border-border-subtle rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-accent-blue focus:border-transparent bg-white dark:bg-dark-elevated text-gray-900 dark:text-text-primary transition-colors duration-300"
+                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                         placeholder="Enter semester number"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-text-secondary mb-1">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
                                         Semester Name *
                                     </label>
                                     <input
                                         type="text"
                                         value={newSemester.name}
                                         onChange={(e) => setNewSemester({ ...newSemester, name: e.target.value })}
-                                        className="w-full p-3 border border-gray-300 dark:border-border-subtle rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-accent-blue focus:border-transparent bg-white dark:bg-dark-elevated text-gray-900 dark:text-text-primary placeholder-gray-500 dark:placeholder-text-muted transition-colors duration-300"
+                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                         placeholder="Enter semester name"
                                     />
                                 </div>
@@ -1381,7 +1381,7 @@ const AdminDashboard = () => {
                                             onChange={(e) => setNewSemester({ ...newSemester, is_active: e.target.checked })}
                                             className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                                         />
-                                        <span className="ml-2 text-sm text-gray-700 dark:text-text-secondary">Active Semester</span>
+                                        <span className="ml-2 text-sm text-gray-700">Active Semester</span>
                                     </label>
                                 </div>
                             </div>
@@ -1389,13 +1389,13 @@ const AdminDashboard = () => {
                             <div className="flex justify-end space-x-3 mt-6">
                                 <button
                                     onClick={() => setShowAddSemesterModal(false)}
-                                    className="px-4 py-2 text-gray-600 dark:text-text-secondary bg-gray-100 dark:bg-dark-elevated hover:bg-gray-200 dark:hover:bg-glass-subtle rounded-lg transition-colors"
+                                    className="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     onClick={handleAddSemester}
-                                    className="px-4 py-2 bg-blue-600 dark:bg-accent-blue hover:bg-blue-700 dark:hover:bg-blue-700 text-white rounded-lg transition-colors"
+                                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
                                 >
                                     Add Semester
                                 </button>
@@ -1407,12 +1407,12 @@ const AdminDashboard = () => {
                 {/* New Admin Modal */}
                 {showNewAdminModal && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                        <div className="bg-white dark:bg-dark-secondary rounded-lg p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto border border-gray-200 dark:border-border-subtle transition-colors duration-300">
+                        <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
                             <div className="flex justify-between items-center mb-6">
-                                <h3 className="text-xl font-semibold text-gray-900 dark:text-text-primary">Create New Admin</h3>
+                                <h3 className="text-xl font-semibold text-gray-900">Create New Admin</h3>
                                 <button
                                     onClick={closeNewAdminModal}
-                                    className="text-gray-400 dark:text-text-muted hover:text-gray-600 dark:hover:text-accent-blue transition-colors"
+                                    className="text-gray-400 hover:text-gray-600 transition-colors"
                                     aria-label="Close modal"
                                 >
                                     <X size={24} />

@@ -109,7 +109,7 @@ const Login = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-dark-primary flex flex-col justify-center py-12 sm:px-6 lg:px-8 transition-colors duration-300">
+        <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
             <div className="sm:mx-auto sm:w-full sm:max-w-md">
                 <div className="text-center">
                     <h2 className="text-3xl font-bold text-secondary-900">
@@ -128,11 +128,11 @@ const Login = () => {
             </div>
 
             <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-                <div className="bg-white dark:bg-dark-secondary py-8 px-4 shadow-sm rounded-lg sm:px-10 border border-gray-200 dark:border-border-subtle transition-colors duration-300">
+                <div className="bg-white py-8 px-4 shadow-sm rounded-lg sm:px-10">
                     {emailResent && (
-                        <div className="mb-6 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-lg p-4 flex items-center space-x-2">
-                            <CheckCircle size={20} className="text-green-500 dark:text-green-400" />
-                            <span className="text-green-700 dark:text-green-300 text-sm">
+                        <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4 flex items-center space-x-2">
+                            <CheckCircle size={20} className="text-green-500" />
+                            <span className="text-green-700 text-sm">
                                 Confirmation email sent! Please check your inbox and click the confirmation link.
                             </span>
                         </div>
