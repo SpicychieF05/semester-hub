@@ -2,13 +2,17 @@
 
 <div align="center">
   <img src="public/images/sm-logo.png" alt="Semester Hub Logo" width="120" height="120" style="border-radius: 50%;">
+  
   <h3>🎓 Your Premier Academic Note-Sharing Platform</h3>
+  
   [![React](https://img.shields.io/badge/React-18.2.0-blue?style=for-the-badge&logo=react)](https://reactjs.org/)
   [![Supabase](https://img.shields.io/badge/Supabase-Backend-green?style=for-the-badge&logo=supabase)](https://supabase.com/)
   [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.1.6-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
   [![Vercel](https://img.shields.io/badge/Vercel-Deployed-black?style=for-the-badge&logo=vercel)](https://vercel.com/)
   [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
+  
   [![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-Visit_Now-success?style=for-the-badge&logo=vercel)](https://semesterhub.vercel.app/)
+  
   **Empowering students through collaborative learning and secure knowledge sharing**
 </div>
 
