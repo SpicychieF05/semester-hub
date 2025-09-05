@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { auth, supabase } from '../supabase';
 import { Mail, Lock, User, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
 import CustomCheckbox from '../components/CustomCheckbox';
+import TermsOfServiceModal from '../components/TermsOfServiceModal';
+import PrivacyPolicyModal from '../components/PrivacyPolicyModal';
 
 const Register = () => {
     const [formData, setFormData] = useState({
@@ -16,6 +18,8 @@ const Register = () => {
     const [termsAccepted, setTermsAccepted] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [showTermsModal, setShowTermsModal] = useState(false);
+    const [showPrivacyModal, setShowPrivacyModal] = useState(false);
     const navigate = useNavigate();
 
     const handleInputChange = (e) => {
@@ -139,6 +143,11 @@ const Register = () => {
     };
 
     const passwordStrength = getPasswordStrength(formData.password);
+
+    const openTermsModal = () => setShowTermsModal(true);
+    const closeTermsModal = () => setShowTermsModal(false);
+    const openPrivacyModal = () => setShowPrivacyModal(true);
+    const closePrivacyModal = () => setShowPrivacyModal(false);
 
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
@@ -301,21 +310,19 @@ const Register = () => {
                             />
                             <label htmlFor="terms" className="block text-sm text-secondary-900">
                                 I agree to the{' '}
-                                <button
-                                    type="button"
-                                    className="text-primary-600 hover:text-primary-500 bg-transparent border-none cursor-pointer underline"
-                                    onClick={() => alert('Terms of Service coming soon!')}
+                                <span
+                                    className="text-primary-600 hover:text-primary-500 underline cursor-pointer"
+                                    onClick={openTermsModal}
                                 >
                                     Terms of Service
-                                </button>{' '}
+                                </span>{' '}
                                 and{' '}
-                                <button
-                                    type="button"
-                                    className="text-primary-600 hover:text-primary-500 bg-transparent border-none cursor-pointer underline"
-                                    onClick={() => alert('Privacy Policy coming soon!')}
+                                <span
+                                    className="text-primary-600 hover:text-primary-500 underline cursor-pointer"
+                                    onClick={openPrivacyModal}
                                 >
                                     Privacy Policy
-                                </button>
+                                </span>
                             </label>
                         </div>                        <div>
                             <button
@@ -371,6 +378,10 @@ const Register = () => {
                             </div>
                         </div>
                     </form>
+
+                    {/* Modals for Terms and Privacy */}
+                    <TermsOfServiceModal isOpen={showTermsModal} onClose={closeTermsModal} />
+                    <PrivacyPolicyModal isOpen={showPrivacyModal} onClose={closePrivacyModal} />
                 </div>
             </div>
         </div>
