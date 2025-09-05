@@ -1,3 +1,10 @@
+/* 
+ * Tailwind CSS Imports and Custom Styles
+ * Note: @tailwind and @apply directives are valid Tailwind CSS syntax
+ * The "Unknown at rule" warnings can be safely ignored
+ */
+
+/* Tailwind CSS Directives */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
