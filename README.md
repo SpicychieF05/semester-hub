@@ -1,7 +1,7 @@
 # 🎓 Semester Hub
 
 <div align="center">
-  <img src="public/images/sm-logo.png" alt="Semester Hub Logo" width="120" height="120" style="border-radius: 50%;">
+  <img src="https://res.cloudinary.com/dlxybta5a/image/upload/v1757098209/Untitled_design-removebg-preview_qvyorn.png" alt="Semester Hub Logo" width="120" height="120" style="border-radius: 50%;">
   
   <h3>🎓 Your Premier Academic Note-Sharing Platform</h3>
   
