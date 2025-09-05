@@ -5,34 +5,10 @@
 @layer base {
     * {
         @apply border-gray-200;
-        transition: background-color 0.6s ease, color 0.6s ease, border-color 0.6s ease, box-shadow 0.6s ease;
     }
 
     body {
-        @apply bg-gray-50 text-gray-900 dark:bg-dark-primary dark:text-text-primary font-sans;
-        transition: background-color 0.8s ease, color 0.8s ease;
-    }
-
-    /* Dark mode scrollbar styling */
-    html.dark {
-        color-scheme: dark;
-    }
-
-    html.dark ::-webkit-scrollbar {
-        width: 8px;
-    }
-
-    html.dark ::-webkit-scrollbar-track {
-        background: #1F2328;
-    }
-
-    html.dark ::-webkit-scrollbar-thumb {
-        background: #30363D;
-        border-radius: 4px;
-    }
-
-    html.dark ::-webkit-scrollbar-thumb:hover {
-        background: #4F6299;
+        @apply bg-gray-50 text-gray-900 font-sans;
     }
 
     /* Mobile-first responsive typography */
@@ -91,66 +67,19 @@
 
 @layer components {
     .btn-primary {
-        @apply bg-primary-600 hover:bg-primary-700 dark:bg-accent-blue dark:hover:bg-accent-blue-hover text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200 text-center min-h-[44px] flex items-center justify-center;
+        @apply bg-primary-600 hover:bg-primary-700 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200 text-center min-h-[44px] flex items-center justify-center;
     }
 
     .btn-secondary {
-        @apply bg-secondary-100 hover:bg-secondary-200 dark:bg-accent-secondary-btn dark:hover:bg-accent-secondary-hover text-secondary-800 dark:text-text-primary font-medium py-3 px-6 rounded-lg transition-colors duration-200 text-center min-h-[44px] flex items-center justify-center;
+        @apply bg-secondary-100 hover:bg-secondary-200 text-secondary-800 font-medium py-3 px-6 rounded-lg transition-colors duration-200 text-center min-h-[44px] flex items-center justify-center;
     }
 
     .card {
-        @apply bg-white dark:bg-dark-secondary rounded-xl shadow-sm border border-secondary-200 dark:border-border-subtle p-4 sm:p-6 transition-colors duration-200;
-        backdrop-filter: blur(10px);
+        @apply bg-white rounded-xl shadow-sm border border-secondary-200 p-4 sm:p-6;
     }
 
     .input-field {
-        @apply w-full px-3 py-3 text-base border border-secondary-300 dark:border-border-subtle dark:bg-dark-secondary dark:text-text-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-accent-blue focus:border-transparent min-h-[44px] transition-colors duration-200;
-    }
-
-    /* Add theme-aware text colors */
-    .text-primary {
-        @apply text-gray-900 dark:text-text-primary;
-    }
-
-    .text-secondary {
-        @apply text-gray-600 dark:text-text-secondary;
-    }
-
-    /* Theme-aware borders */
-    .border-theme {
-        @apply border-gray-200 dark:border-border-subtle;
-    }
-
-    /* Theme-aware backgrounds */
-    .bg-theme {
-        @apply bg-white dark:bg-dark-secondary;
-    }
-
-    .bg-theme-secondary {
-        @apply bg-gray-50 dark:bg-dark-primary;
-    }
-
-    /* Smooth theme transitions for common elements */
-    button,
-    input,
-    select,
-    textarea,
-    div,
-    nav,
-    header,
-    main,
-    footer,
-    section,
-    article {
-        transition: background-color 0.6s ease, color 0.6s ease, border-color 0.6s ease, box-shadow 0.6s ease;
-    }
-
-    /* Special smooth transitions for cards and modals */
-    .card,
-    .modal,
-    .dropdown,
-    .menu {
-        transition: background-color 0.7s ease, color 0.7s ease, border-color 0.7s ease, box-shadow 0.7s ease, backdrop-filter 0.7s ease;
+        @apply w-full px-3 py-3 text-base border border-secondary-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[44px];
     }
 
     /* Mobile-optimized text truncation */
@@ -187,16 +116,16 @@
 }
 
 ::-webkit-scrollbar-track {
-    @apply bg-gray-100 dark:bg-dark-secondary;
+    background: #f1f5f9;
 }
 
 ::-webkit-scrollbar-thumb {
-    @apply bg-gray-300 dark:bg-border-subtle;
+    background: #cbd5e1;
     border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    @apply bg-gray-400 dark:bg-accent-blue;
+    background: #94a3b8;
 }
 
 /* Enhanced shadow effects */
@@ -262,6 +191,6 @@ input:focus,
 select:focus,
 textarea:focus,
 button:focus {
-    outline: 2px solid #1976D2;
+    outline: 2px solid #3b82f6;
     outline-offset: 2px;
 }
