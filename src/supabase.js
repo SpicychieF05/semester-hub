@@ -161,10 +161,17 @@ export const auth = {
                 }
             } else {
                 // Update existing user profile with latest info
+                // If the user doesn't have a name, try to extract it from email or use email username
+                const currentName = existingUser.name;
+                const fallbackName = user.user_metadata?.full_name || 
+                                   user.user_metadata?.name || 
+                                   currentName || 
+                                   user.email.split('@')[0];
+
                 const { error: updateError } = await supabase
                     .from('users')
                     .update({
-                        name: user.user_metadata?.full_name || user.user_metadata?.name || existingUser.name,
+                        name: fallbackName,
                         avatar_url: user.user_metadata?.avatar_url || existingUser.avatar_url,
                         updated_at: new Date().toISOString()
                     })
@@ -179,6 +186,28 @@ export const auth = {
         } catch (error) {
             console.error('Error creating/updating user profile:', error);
             throw error;
+        }
+    },
+
+    // Fix user profile names for existing users
+    fixUserProfileName: async (userId, newName) => {
+        try {
+            const { error } = await supabase
+                .from('users')
+                .update({
+                    name: newName,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', userId);
+
+            if (error) {
+                throw error;
+            }
+
+            return true;
+        } catch (error) {
+            console.error('Error updating user profile name:', error);
+            return false;
         }
     }
 }

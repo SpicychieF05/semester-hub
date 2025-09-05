@@ -52,6 +52,17 @@ function App() {
 
                     if (!error) {
                         setUserProfile(profile);
+                        
+                        // If user profile exists but has no name, update it with email username
+                        if (profile && (!profile.name || profile.name.trim() === '')) {
+                            const emailUsername = user.email.split('@')[0];
+                            console.log('Updating user profile with email username:', emailUsername);
+                            
+                            await auth.fixUserProfileName(user.id, emailUsername);
+                            
+                            // Update the local profile state
+                            setUserProfile({ ...profile, name: emailUsername });
+                        }
                     }
                 } catch (error) {
                     console.error('Error with user profile:', error);
