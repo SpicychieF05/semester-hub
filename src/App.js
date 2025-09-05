@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AppProvider } from './context/AppContext';
-import { ThemeProvider } from './context/ThemeContext';
 
 // Components
 import Navbar from './components/Navbar';
@@ -101,32 +100,30 @@ function App() {
 
     return (
         <ErrorBoundary>
-            <ThemeProvider>
-                <AppProvider>
-                    <Router>
-                        <div className="min-h-screen bg-gray-50 dark:bg-dark-primary flex flex-col transition-colors duration-800 ease-theme">
-                            <Navbar user={currentUser} />
-                            <main className="flex-grow">
-                                <Routes>
-                                    <Route path="/" element={<HomePage />} />
-                                    <Route path="/browse" element={<BrowseNotes />} />
-                                    <Route path="/share" element={currentUser ? <ShareNotes /> : <Login />} />
-                                    <Route path="/note/:id" element={<NoteDetail />} />
-                                    <Route path="/auth/callback" element={<AuthCallback />} />
-                                    <Route path="/admin-access" element={<AdminLogin />} />
-                                    <Route path="/admin-login" element={<AdminLogin />} />
-                                    <Route path="/admin" element={<ProtectedAdminRoute />} />
-                                    <Route path="/admin-setup" element={<AdminSetup />} />
-                                    <Route path="/login" element={<Login />} />
-                                    <Route path="/register" element={<Register />} />
-                                </Routes>
-                            </main>
-                            <Footer user={currentUser} />
-                            <ToastContainer />
-                        </div>
-                    </Router>
-                </AppProvider>
-            </ThemeProvider>
+            <AppProvider>
+                <Router>
+                    <div className="min-h-screen bg-gray-50 flex flex-col">
+                        <Navbar user={currentUser} />
+                        <main className="flex-grow">
+                            <Routes>
+                                <Route path="/" element={<HomePage />} />
+                                <Route path="/browse" element={<BrowseNotes />} />
+                                <Route path="/share" element={currentUser ? <ShareNotes /> : <Login />} />
+                                <Route path="/note/:id" element={<NoteDetail />} />
+                                <Route path="/auth/callback" element={<AuthCallback />} />
+                                <Route path="/admin-access" element={<AdminLogin />} />
+                                <Route path="/admin-login" element={<AdminLogin />} />
+                                <Route path="/admin" element={<ProtectedAdminRoute />} />
+                                <Route path="/admin-setup" element={<AdminSetup />} />
+                                <Route path="/login" element={<Login />} />
+                                <Route path="/register" element={<Register />} />
+                            </Routes>
+                        </main>
+                        <Footer user={currentUser} />
+                        <ToastContainer />
+                    </div>
+                </Router>
+            </AppProvider>
         </ErrorBoundary>
     );
 }
