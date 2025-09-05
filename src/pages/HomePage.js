@@ -82,7 +82,7 @@ const HomePage = () => {
                                     {/* Image container with enhanced styling */}
                                     <div className="relative bg-white/10 backdrop-blur-sm rounded-2xl p-2 border border-white/20">
                                         <img
-                                            src="/images/hero-image.gif"
+                                            src="https://res.cloudinary.com/dlxybta5a/image/upload/v1757098309/imgi_2_hero-image_o1panp.gif"
                                             alt="Students learning together"
                                             className="w-full max-w-xs sm:max-w-sm lg:max-w-md xl:max-w-lg h-auto rounded-xl shadow-2xl transition-all duration-500 hover:scale-105 hover:rotate-1 hover:shadow-3xl"
                                             style={{

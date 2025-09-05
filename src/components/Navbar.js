@@ -28,7 +28,7 @@ const Navbar = ({ user }) => {
                     <div className="flex items-center">
                         <Link to="/" className="flex items-center space-x-2 sm:space-x-3">
                             <img
-                                src="/images/sm-logo.png"
+                                src="https://res.cloudinary.com/dlxybta5a/image/upload/v1757098209/Untitled_design-removebg-preview_qvyorn.png"
                                 alt="Semester Hub"
                                 className="h-8 w-8 sm:h-10 sm:w-10 rounded-full object-cover border-2 border-primary-200"
                                 onError={(e) => {

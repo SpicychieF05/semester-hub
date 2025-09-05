@@ -61,7 +61,7 @@ const Footer = ({ user }) => {
                     <div className="col-span-1 sm:col-span-2 lg:col-span-2">
                         <div className="flex items-center space-x-2 sm:space-x-3 mb-3 sm:mb-4">
                             <img
-                                src="/images/sm-logo.png"
+                                src="https://res.cloudinary.com/dlxybta5a/image/upload/v1757098209/Untitled_design-removebg-preview_qvyorn.png"
                                 alt="Semester Hub Logo"
                                 className="h-8 w-8 sm:h-10 sm:w-10 rounded-full object-cover border-2 border-primary-200 dark:border-accent-blue"
                                 loading="lazy"
