@@ -236,7 +236,7 @@ const AdminLogin = () => {
                                     required
                                     value={formData.email}
                                     onChange={handleInputChange}
-                                    className="pl-10 appearance-none block w-full px-3 py-2 border border-secondary-300 rounded-md placeholder-secondary-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                                    className="pl-10 appearance-none block w-full px-3 py-2 bg-white text-gray-900 border border-secondary-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500"
                                     placeholder="Enter admin email"
                                 />
                             </div>
@@ -256,7 +256,7 @@ const AdminLogin = () => {
                                     required
                                     value={formData.password}
                                     onChange={handleInputChange}
-                                    className="pl-10 pr-10 appearance-none block w-full px-3 py-2 border border-secondary-300 rounded-md placeholder-secondary-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                                    className="pl-10 pr-10 appearance-none block w-full px-3 py-2 bg-white text-gray-900 border border-secondary-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500"
                                     placeholder="Enter admin password"
                                 />
                                 <button
