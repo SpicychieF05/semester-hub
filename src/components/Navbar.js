@@ -2,14 +2,11 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { auth } from '../supabase';
 import { Menu, X, User, LogOut } from 'lucide-react';
-import { useTheme } from '../context/ThemeContext';
-import ThemeToggle from './ThemeToggle';
 
 const Navbar = ({ user }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [showUserMenu, setShowUserMenu] = useState(false);
     const navigate = useNavigate();
-    const { isDarkMode, toggleTheme } = useTheme();
 
     const handleLogout = async () => {
         try {
@@ -21,7 +18,7 @@ const Navbar = ({ user }) => {
     };
 
     return (
-        <nav className="bg-white dark:bg-dark-secondary shadow-lg sticky top-0 z-50 transition-colors duration-600 ease-theme border-b border-gray-200 dark:border-border-subtle backdrop-blur-md">
+        <nav className="bg-white shadow-lg sticky top-0 z-50">
             <div className="container-responsive">
                 <div className="flex justify-between h-14 sm:h-16">
                     {/* Logo and brand */}
@@ -35,7 +32,7 @@ const Navbar = ({ user }) => {
                                     e.target.style.display = 'none';
                                 }}
                             />
-                            <span className="text-lg sm:text-xl font-bold text-primary-700 dark:text-text-primary">
+                            <span className="text-lg sm:text-xl font-bold text-primary-700">
                                 Semester Hub
                             </span>
                         </Link>
@@ -47,27 +44,27 @@ const Navbar = ({ user }) => {
                         <div className="hidden md:flex items-center space-x-6">
                             <Link
                                 to="/"
-                                className="text-secondary-600 dark:text-text-secondary hover:text-primary-600 dark:hover:text-link-hover px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                                className="text-secondary-600 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
                             >
                                 Home
                             </Link>
                             <Link
                                 to="/browse"
-                                className="text-secondary-600 dark:text-text-secondary hover:text-primary-600 dark:hover:text-link-hover px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                                className="text-secondary-600 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
                             >
-                                <span className="text-secondary-600 dark:text-text-neon-white">Browse Notes</span>
+                                Browse Notes
                             </Link>
                             {user && (
                                 <Link
                                     to="/share"
-                                    className="text-secondary-600 dark:text-text-secondary hover:text-primary-600 dark:hover:text-link-hover px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                                    className="text-secondary-600 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
                                 >
                                     Share Notes
                                 </Link>
                             )}
                             <Link
                                 to="/admin"
-                                className="text-secondary-600 dark:text-text-secondary hover:text-primary-600 dark:hover:text-link-hover px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                                className="text-secondary-600 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
                             >
                                 Admin
                             </Link>
@@ -79,17 +76,17 @@ const Navbar = ({ user }) => {
                                 <div className="relative">
                                     <button
                                         onClick={() => setShowUserMenu(!showUserMenu)}
-                                        className="flex items-center space-x-2 text-secondary-600 dark:text-text-secondary hover:text-primary-600 dark:hover:text-link-hover px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                                        className="flex items-center space-x-2 text-secondary-600 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
                                     >
                                         <User size={20} />
                                         <span>{user.displayName || user.email}</span>
                                     </button>
 
                                     {showUserMenu && (
-                                        <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-dark-elevated rounded-md shadow-lg border border-gray-200 dark:border-border-primary py-1 z-50 backdrop-blur-sm">
+                                        <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
                                             <button
                                                 onClick={handleLogout}
-                                                className="flex items-center space-x-2 px-4 py-2 text-sm text-secondary-700 dark:text-text-secondary hover:bg-secondary-100 dark:hover:bg-dark-surface w-full text-left transition-colors"
+                                                className="flex items-center space-x-2 px-4 py-2 text-sm text-secondary-700 hover:bg-secondary-100 w-full text-left"
                                             >
                                                 <LogOut size={16} />
                                                 <span>Sign out</span>
@@ -101,7 +98,7 @@ const Navbar = ({ user }) => {
                                 <div className="flex items-center space-x-4">
                                     <Link
                                         to="/login"
-                                        className="text-secondary-600 dark:text-text-secondary hover:text-primary-600 dark:hover:text-link-hover px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                                        className="text-secondary-600 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
                                     >
                                         Sign In
                                     </Link>
@@ -113,16 +110,13 @@ const Navbar = ({ user }) => {
                                     </Link>
                                 </div>
                             )}
+                        </div>
 
-                            {/* Theme Toggle */}
-                            <div className="flex items-center">
-                                <ThemeToggle isDark={isDarkMode} onToggle={toggleTheme} />
-                            </div>
-                        </div>                        {/* Mobile menu button */}
+                        {/* Mobile menu button */}
                         <div className="md:hidden flex items-center">
                             <button
                                 onClick={() => setIsOpen(!isOpen)}
-                                className="text-secondary-600 dark:text-text-secondary hover:text-primary-600 dark:hover:text-link-hover focus:outline-none focus:text-primary-600 dark:focus:text-link-focus p-2 transition-colors"
+                                className="text-secondary-600 hover:text-primary-600 focus:outline-none focus:text-primary-600 p-2"
                             >
                                 {isOpen ? <X size={20} /> : <Menu size={20} />}
                             </button>
@@ -133,25 +127,25 @@ const Navbar = ({ user }) => {
                 {/* Mobile Navigation */}
                 {isOpen && (
                     <div className="md:hidden">
-                        <div className="px-2 pt-2 pb-3 space-y-1 bg-white dark:bg-dark-secondary border-t border-secondary-200 dark:border-border-subtle backdrop-blur-md">
+                        <div className="px-2 pt-2 pb-3 space-y-1 bg-white border-t border-secondary-200">
                             <Link
                                 to="/"
-                                className="text-secondary-600 dark:text-text-secondary hover:text-primary-600 dark:hover:text-link-hover flex items-center px-3 py-3 rounded-md text-base font-medium min-h-[44px] transition-colors"
+                                className="text-secondary-600 hover:text-primary-600 flex items-center px-3 py-3 rounded-md text-base font-medium min-h-[44px]"
                                 onClick={() => setIsOpen(false)}
                             >
                                 Home
                             </Link>
                             <Link
                                 to="/browse"
-                                className="text-secondary-600 dark:text-text-secondary hover:text-primary-600 dark:hover:text-link-hover flex items-center px-3 py-3 rounded-md text-base font-medium min-h-[44px] transition-colors"
+                                className="text-secondary-600 hover:text-primary-600 flex items-center px-3 py-3 rounded-md text-base font-medium min-h-[44px]"
                                 onClick={() => setIsOpen(false)}
                             >
-                                <span className="text-secondary-600 dark:text-text-neon-white">Browse Notes</span>
+                                Browse Notes
                             </Link>
                             {user && (
                                 <Link
                                     to="/share"
-                                    className="text-secondary-600 dark:text-text-secondary hover:text-primary-600 dark:hover:text-link-hover flex items-center px-3 py-3 rounded-md text-base font-medium min-h-[44px] transition-colors"
+                                    className="text-secondary-600 hover:text-primary-600 flex items-center px-3 py-3 rounded-md text-base font-medium min-h-[44px]"
                                     onClick={() => setIsOpen(false)}
                                 >
                                     Share Notes
@@ -159,31 +153,31 @@ const Navbar = ({ user }) => {
                             )}
                             <Link
                                 to="/admin"
-                                className="text-secondary-600 dark:text-text-secondary hover:text-primary-600 dark:hover:text-link-hover flex items-center px-3 py-3 rounded-md text-base font-medium min-h-[44px] transition-colors"
+                                className="text-secondary-600 hover:text-primary-600 flex items-center px-3 py-3 rounded-md text-base font-medium min-h-[44px]"
                                 onClick={() => setIsOpen(false)}
                             >
                                 Admin
                             </Link>
 
                             {user ? (
-                                <div className="border-t border-secondary-200 dark:border-border-subtle pt-4">
+                                <div className="border-t border-secondary-200 pt-4">
                                     <div className="flex items-center px-3 py-3 min-h-[44px]">
-                                        <User size={20} className="text-secondary-600 dark:text-text-secondary mr-2" />
-                                        <span className="text-secondary-700 dark:text-text-primary truncate">{user.displayName || user.email}</span>
+                                        <User size={20} className="text-secondary-600 mr-2" />
+                                        <span className="text-secondary-700 truncate">{user.displayName || user.email}</span>
                                     </div>
                                     <button
                                         onClick={handleLogout}
-                                        className="flex items-center px-3 py-3 text-secondary-600 dark:text-text-secondary hover:text-primary-600 dark:hover:text-link-hover w-full text-left min-h-[44px] transition-colors"
+                                        className="flex items-center px-3 py-3 text-secondary-600 hover:text-primary-600 w-full text-left min-h-[44px]"
                                     >
                                         <LogOut size={20} className="mr-2" />
                                         Sign out
                                     </button>
                                 </div>
                             ) : (
-                                <div className="border-t border-secondary-200 dark:border-border-subtle pt-4 space-y-2">
+                                <div className="border-t border-secondary-200 pt-4 space-y-2">
                                     <Link
                                         to="/login"
-                                        className="text-secondary-600 dark:text-text-secondary hover:text-primary-600 dark:hover:text-link-hover flex items-center px-3 py-3 rounded-md text-base font-medium min-h-[44px] transition-colors"
+                                        className="text-secondary-600 hover:text-primary-600 flex items-center px-3 py-3 rounded-md text-base font-medium min-h-[44px]"
                                         onClick={() => setIsOpen(false)}
                                     >
                                         Sign In
@@ -197,11 +191,6 @@ const Navbar = ({ user }) => {
                                     </Link>
                                 </div>
                             )}
-
-                            {/* Theme Toggle for Mobile */}
-                            <div className="border-t border-secondary-200 dark:border-border-subtle pt-4 flex justify-center">
-                                <ThemeToggle isDark={isDarkMode} onToggle={toggleTheme} />
-                            </div>
                         </div>
                     </div>
                 )}

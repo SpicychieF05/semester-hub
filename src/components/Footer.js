@@ -54,7 +54,7 @@ const Footer = ({ user }) => {
         };
     }, [showContactModal, closeContactModal]);
     return (
-        <footer className="bg-secondary-900 dark:bg-dark-primary text-white dark:text-text-primary transition-colors duration-600 ease-theme">
+        <footer className="bg-secondary-900 text-white">
             <div className="container-responsive py-8 sm:py-12">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
                     {/* Brand Section */}
@@ -63,17 +63,17 @@ const Footer = ({ user }) => {
                             <img
                                 src="https://res.cloudinary.com/dlxybta5a/image/upload/v1757098209/Untitled_design-removebg-preview_qvyorn.png"
                                 alt="Semester Hub Logo"
-                                className="h-8 w-8 sm:h-10 sm:w-10 rounded-full object-cover border-2 border-primary-200 dark:border-accent-blue"
+                                className="h-8 w-8 sm:h-10 sm:w-10 rounded-full object-cover border-2 border-primary-200"
                                 loading="lazy"
                                 onError={(e) => {
                                     e.target.style.display = 'none';
                                 }}
                             />
-                            <span className="text-xl sm:text-2xl font-bold text-white dark:text-text-primary">
+                            <span className="text-xl sm:text-2xl font-bold text-white">
                                 Semester Hub
                             </span>
                         </div>
-                        <p className="text-sm sm:text-base text-secondary-300 dark:text-text-secondary mb-4 sm:mb-6 max-w-md">
+                        <p className="text-sm sm:text-base text-secondary-300 mb-4 sm:mb-6 max-w-md">
                             Your premier platform for sharing and accessing academic notes.
                             Empowering students through collaborative learning and knowledge sharing.
                         </p>
@@ -82,7 +82,7 @@ const Footer = ({ user }) => {
                                 href="https://github.com/spicychief05"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-secondary-400 dark:text-text-muted hover:text-white dark:hover:text-accent-blue transition-colors p-2"
+                                className="text-secondary-400 hover:text-white transition-colors p-2"
                                 aria-label="Visit GitHub Profile"
                             >
                                 <Github size={18} className="sm:w-5 sm:h-5" />
@@ -119,25 +119,25 @@ const Footer = ({ user }) => {
 
                     {/* Quick Links */}
                     <div>
-                        <h3 className="text-lg font-semibold mb-4 text-white dark:text-text-primary">Quick Links</h3>
+                        <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
                         <ul className="space-y-2">
                             <li>
-                                <Link to="/" className="text-secondary-300 dark:text-text-secondary hover:text-white dark:hover:text-accent-blue transition-colors">
+                                <Link to="/" className="text-secondary-300 hover:text-white transition-colors">
                                     Home
                                 </Link>
                             </li>
                             <li>
-                                <Link to="/browse" className="text-secondary-300 dark:text-text-secondary hover:text-white dark:hover:text-accent-blue transition-colors">
-                                    <span className="text-secondary-300 dark:text-text-neon-white">Browse Notes</span>
+                                <Link to="/browse" className="text-secondary-300 hover:text-white transition-colors">
+                                    Browse Notes
                                 </Link>
                             </li>
                             <li>
-                                <Link to="/share" className="text-secondary-300 dark:text-text-secondary hover:text-white dark:hover:text-accent-blue transition-colors">
+                                <Link to="/share" className="text-secondary-300 hover:text-white transition-colors">
                                     Share Notes
                                 </Link>
                             </li>
                             <li>
-                                <Link to="/admin" className="text-secondary-300 dark:text-text-secondary hover:text-white dark:hover:text-accent-blue transition-colors">
+                                <Link to="/admin" className="text-secondary-300 hover:text-white transition-colors">
                                     Admin Panel
                                 </Link>
                             </li>
@@ -146,11 +146,11 @@ const Footer = ({ user }) => {
 
                     {/* Contact & Support */}
                     <div>
-                        <h3 className="text-lg font-semibold mb-4 text-white dark:text-text-primary">Contact & Support</h3>
+                        <h3 className="text-lg font-semibold mb-4">Contact & Support</h3>
                         <ul className="space-y-2">
                             <li>
                                 <span
-                                    className="text-secondary-300 dark:text-text-secondary hover:text-white dark:hover:text-accent-blue transition-colors cursor-pointer"
+                                    className="text-secondary-300 hover:text-white transition-colors cursor-pointer"
                                     onClick={openContactModal}
                                 >
                                     Contact Us
@@ -158,7 +158,7 @@ const Footer = ({ user }) => {
                             </li>
                             <li>
                                 <span
-                                    className="text-secondary-300 dark:text-text-secondary hover:text-white dark:hover:text-accent-blue transition-colors cursor-pointer"
+                                    className="text-secondary-300 hover:text-white transition-colors cursor-pointer"
                                     onClick={openBugReportModal}
                                 >
                                     Bug Report
@@ -166,7 +166,7 @@ const Footer = ({ user }) => {
                             </li>
                             <li>
                                 <span
-                                    className="text-secondary-300 dark:text-text-secondary hover:text-white dark:hover:text-accent-blue transition-colors cursor-pointer"
+                                    className="text-secondary-300 hover:text-white transition-colors cursor-pointer"
                                     onClick={openTermsModal}
                                 >
                                     Terms of Service
