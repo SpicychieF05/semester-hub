@@ -284,14 +284,14 @@ const ShareNotes = () => {
 
     if (success) {
         return (
-            <div className="min-h-screen bg-gray-50 dark:bg-dark-primary py-8 sm:py-12 transition-colors duration-300">
+            <div className="min-h-screen bg-gray-50 py-8 sm:py-12">
                 <div className="container-responsive max-w-2xl">
-                    <div className="bg-white dark:bg-dark-secondary rounded-lg shadow-sm p-6 sm:p-8 text-center mx-4 sm:mx-0 border border-gray-200 dark:border-border-subtle transition-colors duration-300">
-                        <CheckCircle size={48} className="sm:w-16 sm:h-16 mx-auto text-green-500 dark:text-green-400 mb-4" />
-                        <h2 className="text-xl sm:text-2xl font-bold text-secondary-900 dark:text-text-primary mb-4">
+                    <div className="bg-white rounded-lg shadow-sm p-6 sm:p-8 text-center mx-4 sm:mx-0">
+                        <CheckCircle size={48} className="sm:w-16 sm:h-16 mx-auto text-green-500 mb-4" />
+                        <h2 className="text-xl sm:text-2xl font-bold text-secondary-900 mb-4">
                             Note Submitted Successfully!
                         </h2>
-                        <p className="text-sm sm:text-base text-secondary-600 dark:text-text-secondary mb-6">
+                        <p className="text-sm sm:text-base text-secondary-600 mb-6">
                             Your note has been submitted successfully and is now pending review. Once approved by our admin team,
                             it will be available for other students to access. {file ? 'Your uploaded file has been securely stored.' : ''}
                         </p>
@@ -308,31 +308,31 @@ const ShareNotes = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-dark-primary py-8 sm:py-12 transition-colors duration-300">
+        <div className="min-h-screen bg-gray-50 py-8 sm:py-12">
             <div className="container-responsive max-w-2xl">
                 {/* Header */}
                 <div className="text-center mb-6 sm:mb-8 px-4 sm:px-0">
-                    <h1 className="text-2xl sm:text-3xl font-bold text-secondary-900 dark:text-text-primary mb-2 sm:mb-4">
+                    <h1 className="text-2xl sm:text-3xl font-bold text-secondary-900 mb-2 sm:mb-4">
                         Share Your Notes
                     </h1>
-                    <p className="text-base sm:text-lg text-secondary-600 dark:text-text-secondary">
+                    <p className="text-base sm:text-lg text-secondary-600">
                         Help fellow students by sharing your knowledge and academic resources
                     </p>
                 </div>
 
                 {/* Upload Form */}
-                <div className="bg-white dark:bg-dark-secondary rounded-lg shadow-sm p-4 sm:p-8 mx-4 sm:mx-0 border border-gray-200 dark:border-border-subtle transition-colors duration-300">
+                <div className="bg-white rounded-lg shadow-sm p-4 sm:p-8 mx-4 sm:mx-0">
                     {error && (
-                        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 flex items-start space-x-2">
-                            <AlertCircle size={20} className="text-red-500 dark:text-red-400 flex-shrink-0 mt-0.5" />
-                            <span className="text-sm sm:text-base text-red-700 dark:text-red-300">{error}</span>
+                        <div className="bg-red-50 border border-red-200 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 flex items-start space-x-2">
+                            <AlertCircle size={20} className="text-red-500 flex-shrink-0 mt-0.5" />
+                            <span className="text-sm sm:text-base text-red-700">{error}</span>
                         </div>
                     )}
 
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {/* Title */}
                         <div>
-                            <label htmlFor="title" className="block text-sm font-medium text-secondary-700 dark:text-text-primary mb-2">
+                            <label htmlFor="title" className="block text-sm font-medium text-secondary-700 mb-2">
                                 Note Title *
                             </label>
                             <input
