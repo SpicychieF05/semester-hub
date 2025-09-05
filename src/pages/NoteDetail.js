@@ -172,13 +172,13 @@ const NoteDetail = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-dark-primary py-8 transition-colors duration-300">
+        <div className="min-h-screen bg-gray-50 py-8">
             <div className="container-responsive max-w-4xl">
                 {/* Back button */}
                 <div className="mb-6">
                     <Link
                         to="/browse"
-                        className="inline-flex items-center space-x-2 text-secondary-600 dark:text-text-secondary hover:text-primary-600 dark:hover:text-accent-blue transition-colors"
+                        className="inline-flex items-center space-x-2 text-secondary-600 hover:text-primary-600 transition-colors"
                     >
                         <ArrowLeft size={20} />
                         <span>Back to Browse</span>
@@ -186,24 +186,24 @@ const NoteDetail = () => {
                 </div>
 
                 {/* Note content */}
-                <div className="bg-white dark:bg-dark-secondary rounded-lg shadow-sm border border-secondary-200 dark:border-border-subtle overflow-hidden transition-colors duration-300">
+                <div className="bg-white rounded-lg shadow-sm border border-secondary-200 overflow-hidden">
                     <div className="p-6 sm:p-8">
                         {/* Header */}
                         <div className="mb-6">
                             <div className="flex flex-wrap items-center gap-2 mb-4">
-                                <span className="px-3 py-1 bg-primary-100 dark:bg-accent-blue/20 text-primary-700 dark:text-accent-blue-hover text-sm font-medium rounded-full">
+                                <span className="px-3 py-1 bg-primary-100 text-primary-700 text-sm font-medium rounded-full">
                                     {note.subject}
                                 </span>
-                                <span className="px-3 py-1 bg-secondary-100 dark:bg-dark-elevated text-secondary-700 dark:text-text-secondary text-sm rounded-full">
+                                <span className="px-3 py-1 bg-secondary-100 text-secondary-700 text-sm rounded-full">
                                     {note.semester}
                                 </span>
                             </div>
 
-                            <h1 className="text-2xl sm:text-3xl font-bold text-secondary-900 dark:text-text-primary mb-4">
+                            <h1 className="text-2xl sm:text-3xl font-bold text-secondary-900 mb-4">
                                 {note.title}
                             </h1>
 
-                            <div className="flex flex-wrap items-center gap-4 text-sm text-secondary-600 dark:text-text-secondary">
+                            <div className="flex flex-wrap items-center gap-4 text-sm text-secondary-600">
                                 <div className="flex items-center space-x-1">
                                     <User size={16} />
                                     <span>{note.uploader_name || note.author || 'Anonymous'}</span>
