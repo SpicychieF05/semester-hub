@@ -79,7 +79,7 @@ const Navbar = ({ user }) => {
                                         className="flex items-center space-x-2 text-secondary-600 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
                                     >
                                         <User size={20} />
-                                        <span>{user.displayName || user.email}</span>
+                                        <span>{user.name || user.displayName || user.email}</span>
                                     </button>
 
                                     {showUserMenu && (
@@ -163,7 +163,7 @@ const Navbar = ({ user }) => {
                                 <div className="border-t border-secondary-200 pt-4">
                                     <div className="flex items-center px-3 py-3 min-h-[44px]">
                                         <User size={20} className="text-secondary-600 mr-2" />
-                                        <span className="text-secondary-700 truncate">{user.displayName || user.email}</span>
+                                        <span className="text-secondary-700 truncate">{user.name || user.displayName || user.email}</span>
                                     </div>
                                     <button
                                         onClick={handleLogout}

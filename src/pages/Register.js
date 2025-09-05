@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { auth, supabase } from '../supabase';
 import { Mail, Lock, User, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
+import CustomCheckbox from '../components/CustomCheckbox';
 
 const Register = () => {
     const [formData, setFormData] = useState({
@@ -12,6 +13,7 @@ const Register = () => {
     });
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [termsAccepted, setTermsAccepted] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const navigate = useNavigate();
@@ -32,6 +34,11 @@ const Register = () => {
 
         if (formData.password !== formData.confirmPassword) {
             setError('Passwords do not match.');
+            return false;
+        }
+
+        if (!termsAccepted) {
+            setError('Please accept the Terms of Service and Privacy Policy.');
             return false;
         }
 
@@ -286,19 +293,17 @@ const Register = () => {
                             )}
                         </div>
 
-                        <div className="flex items-center">
-                            <input
+                        <div className="flex items-center space-x-3">
+                            <CustomCheckbox
                                 id="terms"
-                                name="terms"
-                                type="checkbox"
-                                required
-                                className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-secondary-300 rounded"
+                                checked={termsAccepted}
+                                onChange={(e) => setTermsAccepted(e.target.checked)}
                             />
-                            <label htmlFor="terms" className="ml-2 block text-sm text-secondary-900">
+                            <label htmlFor="terms" className="block text-sm text-secondary-900">
                                 I agree to the{' '}
                                 <button
                                     type="button"
-                                    className="text-primary-600 hover:text-primary-500 bg-transparent border-none cursor-pointer"
+                                    className="text-primary-600 hover:text-primary-500 bg-transparent border-none cursor-pointer underline"
                                     onClick={() => alert('Terms of Service coming soon!')}
                                 >
                                     Terms of Service
@@ -306,7 +311,7 @@ const Register = () => {
                                 and{' '}
                                 <button
                                     type="button"
-                                    className="text-primary-600 hover:text-primary-500 bg-transparent border-none cursor-pointer"
+                                    className="text-primary-600 hover:text-primary-500 bg-transparent border-none cursor-pointer underline"
                                     onClick={() => alert('Privacy Policy coming soon!')}
                                 >
                                     Privacy Policy
